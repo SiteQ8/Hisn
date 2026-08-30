@@ -1,0 +1,15 @@
+{
+  "name": "hisn",
+  "version": "0.1.0",
+  "description": "Diagram as code for security and compliance reference architectures. Built in blueprints for PCI DSS, SWIFT CSP, and Zero Trust. Zero dependencies.",
+  "type": "module",
+  "bin": { "hisn": "bin/hisn.mjs" },
+  "scripts": { "test": "node --test", "serve": "node bin/hisn.mjs serve --open" },
+  "keywords": ["security", "compliance", "architecture", "diagram", "diagrams-as-code", "pci-dss", "swift-csp", "zero-trust", "threat-model", "blueprint", "zero-dependency"],
+  "author": "SiteQ8",
+  "license": "MIT",
+  "homepage": "https://siteq8.github.io/Hisn/",
+  "repository": { "type": "git", "url": "https://github.com/SiteQ8/Hisn.git" },
+  "files": ["bin/", "docs/app/", "examples/", "README.md", "LICENSE"],
+  "engines": { "node": ">=18" }
+}

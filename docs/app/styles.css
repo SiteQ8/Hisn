@@ -1,0 +1,47 @@
+/* Hisn styles. The diagram itself carries its colors as SVG attributes so it
+   renders anywhere; this stylesheet themes the page chrome and the toolbar, and
+   defines the highlight states the viewer toggles. The browser demo switches
+   theme by re rendering the diagram with the other palette, so the diagram colors
+   do not need CSS variables. */
+
+:root {
+  --hn-bg: #0e1320;
+  --hn-panel: #161f31;
+  --hn-line: #26314a;
+  --hn-text: #e8edf6;
+  --hn-dim: #93a1ba;
+  --hn-accent: #4bd6c8;
+}
+.hn-light {
+  --hn-bg: #f5f7fb;
+  --hn-panel: #ffffff;
+  --hn-line: #dbe3ef;
+  --hn-text: #17203a;
+  --hn-dim: #586a8e;
+  --hn-accent: #12a594;
+}
+
+.hn-svg { display: block; width: 100%; height: 100%; background: var(--hn-bg); }
+.hn-comp { cursor: pointer; }
+
+/* highlight: click a component to trace its data flows */
+.hn-svg.hn-focusing .hn-comp:not(.hn-hot) { opacity: .24; }
+.hn-svg.hn-focusing .hn-flow:not(.hn-hot) { opacity: .1; }
+.hn-svg.hn-focusing .hn-band { opacity: .55; }
+.hn-comp.hn-hot .hn-comp-box { stroke: var(--hn-accent); stroke-width: 2.4; }
+.hn-comp.hn-seed .hn-comp-box { stroke: var(--hn-accent); stroke-width: 2.8; }
+.hn-flow.hn-hot .hn-flow-path { stroke: var(--hn-accent); stroke-width: 2.6; }
+
+/* toolbar shared by the standalone file and the demo */
+.hn-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 10px; background: var(--hn-panel); border: 1px solid var(--hn-line); border-radius: 10px; }
+.hn-toolbar .hn-name { font-weight: 650; color: var(--hn-text); margin-right: 4px; }
+.hn-btn { background: transparent; color: var(--hn-text); border: 1px solid var(--hn-line); border-radius: 7px; padding: 5px 10px; font-size: 12.5px; cursor: pointer; font-family: inherit; }
+.hn-btn:hover { border-color: var(--hn-accent); }
+.hn-btn.hn-on { border-color: var(--hn-accent); }
+.hn-spacer { flex: 1; }
+.hn-hint { color: var(--hn-dim); font-size: 11.5px; }
+
+/* app shell */
+.hn-app { display: flex; flex-direction: column; gap: 10px; height: 100%; }
+.hn-stage { flex: 1; min-height: 0; border: 1px solid var(--hn-line); border-radius: 12px; overflow: hidden; background: var(--hn-bg); }
+.hn-stage .hn-svg { height: 100%; }

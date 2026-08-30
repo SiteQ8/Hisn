@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hisn: security and compliance blueprints as code</title>
+<meta name="description" content="Diagram as code for security and compliance reference architectures. Built in blueprints for PCI DSS, SWIFT CSP, and Zero Trust, as one self contained interactive HTML file.">
+<link rel="stylesheet" href="app/styles.css?v=0.1.0">
+<style>
+  html,body{margin:0;height:100%}
+  body{background:var(--hn-bg);color:var(--hn-text);font:14px/1.55 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;display:flex;flex-direction:column}
+  header{padding:14px 18px;border-bottom:1px solid var(--hn-line);display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+  header h1{font-size:19px;margin:0;letter-spacing:.2px}
+  header .tag{color:var(--hn-dim);font-size:13px}
+  header .sp{flex:1}
+  header a{color:var(--hn-accent);text-decoration:none;font-size:13px;margin-left:14px}
+  header a:hover{text-decoration:underline}
+  main{flex:1;min-height:0;display:grid;grid-template-columns:360px 1fr;gap:12px;padding:12px}
+  .col{display:flex;flex-direction:column;gap:8px;min-height:0}
+  .picker{display:flex;gap:6px;flex-wrap:wrap}
+  textarea{flex:1;min-height:0;resize:none;background:var(--hn-panel);color:var(--hn-text);border:1px solid var(--hn-line);border-radius:10px;padding:12px;font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;tab-size:2}
+  textarea:focus{outline:none;border-color:var(--hn-accent)}
+  .err{min-height:18px;color:#e5647d;font-size:12px;font-family:ui-monospace,Menlo,Consolas,monospace}
+  @media (max-width:820px){ main{grid-template-columns:1fr;grid-template-rows:220px 1fr} }
+</style>
+</head>
+<body>
+<header>
+  <h1>Hisn</h1>
+  <span class="tag">security and compliance blueprints as code</span>
+  <span class="sp"></span>
+  <a href="https://github.com/SiteQ8/Hisn">GitHub</a>
+</header>
+<main>
+  <div class="col">
+    <div class="picker">
+      <button class="hn-btn" data-tpl="pci">PCI DSS</button>
+      <button class="hn-btn" data-tpl="swift">SWIFT CSP</button>
+      <button class="hn-btn" data-tpl="zerotrust">Zero Trust</button>
+    </div>
+    <textarea id="hn-src" spellcheck="false" aria-label="Blueprint source"></textarea>
+    <div class="err" id="hn-err"></div>
+  </div>
+  <div class="col">
+    <div id="hn-root" class="hn-app">
+      <div class="hn-toolbar">
+        <button class="hn-btn" id="hn-theme" title="Toggle theme">Light</button>
+        <button class="hn-btn" id="hn-zout" title="Zoom out">&#8722;</button>
+        <button class="hn-btn" id="hn-zin" title="Zoom in">&#43;</button>
+        <button class="hn-btn" id="hn-zreset" title="Reset view">Reset</button>
+        <button class="hn-btn" id="hn-svg" title="Export SVG">SVG</button>
+        <button class="hn-btn" id="hn-png" title="Export PNG">PNG</button>
+        <button class="hn-btn" id="hn-card" title="Export share image">Card</button>
+        <span class="hn-spacer"></span>
+        <span class="hn-hint">click a component to trace its data flows</span>
+      </div>
+      <div class="hn-stage" id="hn-stage"></div>
+    </div>
+  </div>
+</main>
+<script src="app/viewer.js?v=0.1.0"></script>
+<script type="module" src="app/demo.js?v=0.1.0"></script>
+</body>
+</html>

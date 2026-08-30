@@ -1,0 +1,28 @@
+title Zero trust architecture
+framework zerotrust
+
+zone untrusted "Subject and device" trust=untrusted
+zone plane "Control plane" trust=management
+zone data "Data plane" trust=secure
+zone support "Supporting systems" trust=restricted
+
+component subject "Subject" zone=untrusted type=user
+component device "Device" zone=untrusted type=server
+component pep "Policy enforcement point" zone=data type=gateway
+component pe "Policy engine" zone=plane type=service
+component pa "Policy administrator" zone=plane type=service
+component resource "Enterprise resource" zone=data type=app
+component idm "Identity management" zone=support type=service
+component pki "PKI" zone=support type=hsm
+component siem "Activity logs" zone=support type=siem
+component ti "Threat intelligence" zone=support type=cloud
+
+flow subject -> device "uses" data=internal
+flow device -> pep "request" data=internal
+flow pep -> pa "authorize" data=internal
+flow pa -> pe "evaluate" data=internal
+flow pep -> resource "granted session" data=pii
+flow idm -> pe "identity" data=secret
+flow pki -> pe "certificates" data=secret
+flow siem -> pe "signals" data=internal
+flow ti -> pe "intel" data=public

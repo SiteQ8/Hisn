@@ -1,0 +1,60 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { parse } from "../docs/app/parse.mjs";
+import { layout } from "../docs/app/layout.mjs";
+
+const src = `zone out "Out" trust=untrusted
+zone secure "Secure" trust=secure
+component u "User" zone=out type=user
+component db "DB" zone=secure type=db
+component app "App" zone=secure type=app
+flow u -> app "in" data=chd
+flow app -> db "store" data=chd`;
+
+test("bands are ordered by trust from least to most trusted", () => {
+  const m = layout(parse(src));
+  const bands = m.bands.filter((b) => b.id);
+  assert.equal(bands[0].trust, "untrusted");
+  assert.equal(bands[1].trust, "secure");
+  assert.ok(bands[0].x < bands[1].x);
+});
+
+test("unzoned components get a leading band", () => {
+  const m = layout(parse("component lonely \"L\" type=app\nflow lonely -> lonely"));
+  assert.equal(m.bands[0].id, "");
+  assert.ok(m.bands[0].members.some((c) => c.id === "lonely"));
+});
+
+test("components sit inside their band", () => {
+  const m = layout(parse(src));
+  const band = m.bands.find((b) => b.id === "secure");
+  for (const c of m.components.filter((x) => x.zone === "secure")) {
+    assert.ok(c.x >= band.x && c.x + c.w <= band.x + band.w);
+    assert.ok(c.y >= band.y);
+  }
+});
+
+test("boundary flag marks flows that cross zones", () => {
+  const m = layout(parse(src));
+  const crossing = m.flows.find((f) => f.from === "u" && f.to === "app");
+  const inside = m.flows.find((f) => f.from === "app" && f.to === "db");
+  assert.equal(crossing.boundary, true);
+  assert.equal(inside.boundary, false);
+});
+
+test("incident map lists a component's flows", () => {
+  const m = layout(parse(src));
+  assert.equal(m.incident.app.length, 2);
+  assert.equal(m.incident.u.length, 1);
+});
+
+test("legend sets reflect what is used", () => {
+  const m = layout(parse(src));
+  assert.deepEqual(m.trustsUsed, ["untrusted", "secure"]);
+  assert.ok(m.dataUsed.includes("chd"));
+});
+
+test("canvas has positive size", () => {
+  const m = layout(parse(src));
+  assert.ok(m.width > 0 && m.height > 0);
+});

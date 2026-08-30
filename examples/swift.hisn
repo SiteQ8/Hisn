@@ -1,0 +1,24 @@
+title SWIFT customer security programme secure zone
+framework swift
+
+zone office "General enterprise" trust=untrusted
+zone ops "Operator zone" trust=restricted
+zone secure "SWIFT secure zone" trust=secure
+zone network "SWIFT network" trust=management
+
+component operator "Operator" zone=office type=user
+component oppc "Operator PC" zone=ops type=server controls="CSCF 2.1"
+component jump "Jump server" zone=secure type=gateway controls="CSCF 1.2, 4.1"
+component messaging "Messaging interface" zone=secure type=app controls="CSCF 1.1, 2.2"
+component comms "Communication interface" zone=secure type=server controls="CSCF 1.1"
+component hsm "Hardware security module" zone=secure type=hsm controls="CSCF 5.1"
+component siem "Monitoring" zone=secure type=siem controls="CSCF 6.4"
+component swiftnet "SWIFTNet" zone=network type=cloud
+
+flow operator -> oppc "logon" data=internal controls="CSCF 4.1"
+flow oppc -> jump "restricted path" data=internal controls="CSCF 1.2"
+flow jump -> messaging "operate" data=internal controls="CSCF 1.1"
+flow messaging -> comms "hand off" data=internal
+flow comms -> hsm "sign" data=secret controls="CSCF 5.1"
+flow comms -> swiftnet "send" data=secret controls="CSCF 2.6"
+flow messaging -> siem "log" data=internal controls="CSCF 6.4"

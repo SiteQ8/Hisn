@@ -7,12 +7,12 @@ import { fileURLToPath } from "node:url";
 import { dirname, join, extname, resolve, basename } from "node:path";
 import { createServer } from "node:http";
 
-import { build, validate, templates, templateNames } from "../docs/app/engine.mjs";
+import { build, validate, templates, templateNames, templateLabels, matrixMarkdown, matrixCSV } from "../docs/app/engine.mjs";
 import { toHTML, toCard } from "./html.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, "..");
-const VERSION = "0.1.0";
+const VERSION = "0.2.0";
 
 function usage() {
   process.stdout.write(
@@ -21,20 +21,26 @@ Diagram as code for security and compliance reference architectures.
 
 Usage:
   hisn render <source> [-o out.html] [--theme dark|light]   build a blueprint
-  hisn template <${templateNames.join("|")}> [-o file.hisn]      print a reference blueprint
+  hisn template <name> [-o file.hisn]                       print a reference blueprint
+  hisn check <source> [--json] [--strict]                   review a blueprint for gaps
+  hisn matrix <source> [-o table.md] [--csv]                what each named control covers
   hisn card <source> [-o card.svg] [--theme dark|light]     a 1200 by 630 share image
   hisn serve [--port 8400] [--open]                         run the browser demo
   hisn version
 
 A blueprint source (a .hisn file):
   title My environment
-  framework pci                            pci, swift, or zerotrust
+  framework pci                            any of the framework names below
   zone cde "Cardholder data" trust=secure  untrusted dmz restricted secure management
   component db "Vault" zone=cde type=db controls="Req 3.4"
   flow app -> db "store" data=chd controls="Req 3.4"
 
+Frameworks: ${templateNames.join(" ")}.
 Data classes: public internal pii chd secret.
 Component types: user internet firewall waf gateway proxy lb server app api db store queue hsm ids siem cloud service.
+
+check exits 1 when a high finding is present and --strict is given, so it can
+gate a pipeline.
 `);
 }
 
@@ -52,12 +58,15 @@ function cmdRender(args) {
   try { built = build(readFileSync(src, "utf8"), theme); }
   catch (e) { console.error("hisn: could not read the source: " + e.message); return 2; }
   for (const p of validate(built.ir)) console.error("warning: " + p);
-  const html = toHTML(built.model, built.svg, { theme });
+  const html = toHTML(built.model, built.svg, { theme, review: { findings: built.findings, counts: built.counts, coverage: built.coverage } });
   const out = argValue(args, "-o") || argValue(args, "--output") ||
     join(dirname(resolve(src)), basename(src).replace(/\.[^.]+$/, "") + ".html");
   writeFileSync(out, html);
   const m = built.model;
   console.log("wrote " + out + "  (" + m.bands.filter((b) => b.id).length + " zones, " + m.components.length + " components, " + m.flows.length + " flows)");
+  const c = built.counts;
+  if (c.high + c.medium + c.low === 0) console.log("review: nothing to flag, controls named on " + built.coverage.named + "% of elements");
+  else console.log("review: " + c.high + " high, " + c.medium + " medium, " + c.low + " low. Run 'hisn check' for the detail.");
   return 0;
 }
 
@@ -86,6 +95,64 @@ function cmdCard(args) {
     join(dirname(resolve(src)), basename(src).replace(/\.[^.]+$/, "") + "-card.svg");
   writeFileSync(out, card);
   console.log("wrote " + out + "  (1200 by 630 share card)");
+  return 0;
+}
+
+
+function readSource(src) {
+  if (!src || src.startsWith("-")) { console.error("hisn: this command needs a source file"); return null; }
+  if (!existsSync(src)) { console.error("hisn: no such file: " + src); return null; }
+  return readFileSync(src, "utf8");
+}
+
+function cmdCheck(args) {
+  const text = readSource(args[0]);
+  if (text === null) return 2;
+  let built;
+  try { built = build(text); }
+  catch (e) { console.error("hisn: could not read the source: " + e.message); return 2; }
+
+  const { findings, counts, coverage } = built;
+  if (args.includes("--json")) {
+    console.log(JSON.stringify({ title: built.ir.title, framework: built.ir.framework, counts, coverage, findings }, null, 2));
+  } else {
+    const title = built.ir.title || args[0];
+    console.log(title + (built.ir.framework ? "  (" + built.ir.framework + ")" : ""));
+    console.log("");
+    if (!findings.length) {
+      console.log("  nothing to flag");
+    } else {
+      for (const f of findings) {
+        console.log("  " + (f.severity + "        ").slice(0, 7) + f.title);
+        console.log("          " + f.detail);
+        console.log("          fix: " + f.fix);
+        console.log("");
+      }
+    }
+    console.log("  " + counts.high + " high, " + counts.medium + " medium, " + counts.low + " low");
+    console.log("  controls named on " + coverage.named + "% of elements: " +
+      coverage.components.controlled + " of " + coverage.components.total + " components, " +
+      coverage.flows.controlled + " of " + coverage.flows.total + " flows");
+    console.log("  sensitive flows with a named control: " + coverage.sensitiveFlows.controlled + " of " + coverage.sensitiveFlows.total);
+    if (coverage.controls.length) console.log("  controls referenced: " + coverage.controls.join(", "));
+    console.log("");
+    console.log("  Naming a control records where it belongs. It is not evidence that the control is implemented.");
+  }
+  if (args.includes("--strict") && counts.high > 0) return 1;
+  return 0;
+}
+
+function cmdMatrix(args) {
+  const text = readSource(args[0]);
+  if (text === null) return 2;
+  let built;
+  try { built = build(text); }
+  catch (e) { console.error("hisn: could not read the source: " + e.message); return 2; }
+  const csv = args.includes("--csv");
+  const body = csv ? matrixCSV(built.ir) : matrixMarkdown(built.ir);
+  const out = argValue(args, "-o") || argValue(args, "--output");
+  if (out) { writeFileSync(out, body); console.log("wrote " + out); }
+  else process.stdout.write(body);
   return 0;
 }
 
@@ -127,6 +194,8 @@ function main() {
   if (cmd === "render") return cmdRender(args);
   if (cmd === "template") return cmdTemplate(args);
   if (cmd === "card") return cmdCard(args);
+  if (cmd === "check") return cmdCheck(args);
+  if (cmd === "matrix") return cmdMatrix(args);
   if (cmd === "serve") return cmdServe(args);
   if (cmd === "version" || cmd === "--version" || cmd === "-v") { console.log("hisn " + VERSION); return 0; }
   if (cmd === "help" || cmd === "--help" || cmd === "-h" || !cmd) { usage(); return 0; }

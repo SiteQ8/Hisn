@@ -74,6 +74,34 @@
         else if (hot.has(cid)) el.classList.add("hn-hot");
       });
     }
+    // light a specific set, used when a review finding is selected
+    function highlight(compIds, flowIds) {
+      clearFocus();
+      focused = "\u0000set";
+      svg.classList.add("hn-focusing");
+      (flowIds || []).forEach(function (id) {
+        const el = svg.querySelector('.hn-flow[data-flow="' + id + '"]');
+        if (el) el.classList.add("hn-hot");
+      });
+      (compIds || []).forEach(function (id) {
+        const el = svg.querySelector('.hn-comp[data-comp="' + id + '"]');
+        if (el) el.classList.add("hn-hot");
+      });
+    }
+
+    // mark the elements a review finding touches, so the gaps are visible at rest
+    function mark(compIds, flowIds) {
+      svg.querySelectorAll(".hn-flagged").forEach(function (el) { el.classList.remove("hn-flagged"); });
+      (compIds || []).forEach(function (id) {
+        const el = svg.querySelector('.hn-comp[data-comp="' + id + '"]');
+        if (el) el.classList.add("hn-flagged");
+      });
+      (flowIds || []).forEach(function (id) {
+        const el = svg.querySelector('.hn-flow[data-flow="' + id + '"]');
+        if (el) el.classList.add("hn-flagged");
+      });
+    }
+
     svg.querySelectorAll(".hn-comp").forEach(function (el) {
       el.addEventListener("click", function (e) { e.stopPropagation(); focus(el.getAttribute("data-comp")); });
     });
@@ -84,7 +112,7 @@
       const clone = svg.cloneNode(true);
       const cvp = clone.querySelector(".hn-viewport");
       if (cvp) cvp.removeAttribute("transform");
-      clone.querySelectorAll(".hn-hot, .hn-seed").forEach(function (el) { el.classList.remove("hn-hot", "hn-seed"); });
+      clone.querySelectorAll(".hn-hot, .hn-seed, .hn-flagged").forEach(function (el) { el.classList.remove("hn-hot", "hn-seed", "hn-flagged"); });
       clone.classList.remove("hn-focusing");
       const vb = svg.getAttribute("viewBox").split(/\s+/);
       const w = Math.round(parseFloat(vb[2])), h = Math.round(parseFloat(vb[3]));
@@ -141,7 +169,9 @@
       });
     }
 
-    const api = { zoomBy, resetView, focus, clearFocus, exportSVG, exportPNG, exportCard, state };
+    if (opts.flagged) mark(opts.flagged.components, opts.flagged.flows);
+
+    const api = { zoomBy, resetView, focus, clearFocus, highlight, mark, exportSVG, exportPNG, exportCard, state };
     let onKey = null;
     if (opts.keys) {
       onKey = function (e) {

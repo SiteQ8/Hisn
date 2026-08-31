@@ -1,28 +1,28 @@
 title Zero trust architecture
 framework zerotrust
 
-zone untrusted "Subject and device" trust=untrusted
-zone plane "Control plane" trust=management
-zone data "Data plane" trust=secure
-zone support "Supporting systems" trust=restricted
+zone edge "Subject and device" trust=untrusted
+zone data "Data plane" trust=restricted
+zone support "Supporting systems" trust=secure
+zone plane "Control plane" trust=secure
 
-component subject "Subject" zone=untrusted type=user
-component device "Device" zone=untrusted type=server
-component pep "Policy enforcement point" zone=data type=gateway
-component pe "Policy engine" zone=plane type=service
-component pa "Policy administrator" zone=plane type=service
-component resource "Enterprise resource" zone=data type=app
-component idm "Identity management" zone=support type=service
-component pki "PKI" zone=support type=hsm
-component siem "Activity logs" zone=support type=siem
-component ti "Threat intelligence" zone=support type=cloud
+component subject "Subject" zone=edge type=user
+component device "Device" zone=edge type=server controls="IA-3"
+component pep "Policy enforcement point" zone=data type=gateway controls="800-207 3.1"
+component resource "Enterprise resource" zone=data type=app controls="AC-3"
+component pe "Policy engine" zone=plane type=service controls="800-207 3.3"
+component pa "Policy administrator" zone=plane type=service controls="AC-6"
+component idm "Identity management" zone=support type=service controls="IA-2"
+component pki "PKI" zone=support type=hsm controls="IA-5"
+component siem "Activity logs" zone=support type=siem controls="AU-6"
+component ti "Threat intelligence" zone=support type=cloud controls="SI-5"
 
-flow subject -> device "uses" data=internal
-flow device -> pep "request" data=internal
-flow pep -> pa "authorize" data=internal
-flow pa -> pe "evaluate" data=internal
-flow pep -> resource "granted session" data=pii
-flow idm -> pe "identity" data=secret
-flow pki -> pe "certificates" data=secret
-flow siem -> pe "signals" data=internal
-flow ti -> pe "intel" data=public
+flow subject -> device "uses" data=internal controls="IA-2"
+flow device -> pep "request" data=internal controls="IA-3"
+flow pep -> pa "authorize" data=internal controls="AC-3"
+flow pa -> pe "evaluate" data=internal controls="AC-6"
+flow pep -> resource "granted session" data=pii controls="AC-3, SC-8"
+flow idm -> pe "identity" data=secret controls="IA-5"
+flow pki -> pe "certificates" data=secret controls="IA-5"
+flow siem -> pe "signals" data=internal controls="AU-6"
+flow ti -> pe "intel" data=public controls="SI-5"

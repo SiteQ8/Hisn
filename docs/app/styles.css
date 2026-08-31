@@ -11,6 +11,8 @@
   --hn-text: #e8edf6;
   --hn-dim: #93a1ba;
   --hn-accent: #4bd6c8;
+  --hn-warn: #e0913a;
+  --hn-high: #e5647d;
 }
 .hn-light {
   --hn-bg: #f5f7fb;
@@ -19,6 +21,8 @@
   --hn-text: #17203a;
   --hn-dim: #586a8e;
   --hn-accent: #12a594;
+  --hn-warn: #c07a1a;
+  --hn-high: #d6455f;
 }
 
 .hn-svg { display: block; width: 100%; height: 100%; background: var(--hn-bg); }
@@ -45,3 +49,30 @@
 .hn-app { display: flex; flex-direction: column; gap: 10px; height: 100%; }
 .hn-stage { flex: 1; min-height: 0; border: 1px solid var(--hn-line); border-radius: 12px; overflow: hidden; background: var(--hn-bg); }
 .hn-stage .hn-svg { height: 100%; }
+
+/* a flagged element carries a review finding */
+.hn-comp.hn-flagged .hn-comp-box { stroke: var(--hn-warn); stroke-width: 2; }
+.hn-flow.hn-flagged .hn-flow-path { stroke-width: 2.6; }
+
+/* the review panel */
+.hn-review { border: 1px solid var(--hn-line); border-radius: 10px; background: var(--hn-panel); overflow: hidden; }
+.hn-review-head { display: flex; align-items: center; gap: 10px; padding: 8px 10px; cursor: pointer; user-select: none; }
+.hn-review-head:hover { background: rgba(127,127,127,.06); }
+.hn-review-title { font-weight: 650; color: var(--hn-text); font-size: 13px; }
+.hn-review-sum { color: var(--hn-dim); font-size: 12px; }
+.hn-review-list { max-height: 190px; overflow-y: auto; border-top: 1px solid var(--hn-line); }
+.hn-review[data-open="0"] .hn-review-list { display: none; }
+.hn-finding { display: flex; gap: 9px; padding: 8px 10px; border-bottom: 1px solid var(--hn-line); cursor: pointer; }
+.hn-finding:last-child { border-bottom: 0; }
+.hn-finding:hover { background: rgba(127,127,127,.07); }
+.hn-finding.hn-picked { background: rgba(127,127,127,.11); }
+.hn-sev { flex: none; margin-top: 3px; width: 8px; height: 8px; border-radius: 50%; }
+.hn-sev-high { background: var(--hn-high); }
+.hn-sev-medium { background: var(--hn-warn); }
+.hn-sev-low { background: var(--hn-dim); }
+.hn-finding-body { min-width: 0; }
+.hn-finding-t { color: var(--hn-text); font-size: 12.5px; font-weight: 600; }
+.hn-finding-d { color: var(--hn-dim); font-size: 11.5px; margin-top: 2px; }
+.hn-finding-f { color: var(--hn-accent); font-size: 11.5px; margin-top: 3px; }
+.hn-clean { padding: 10px; color: var(--hn-dim); font-size: 12.5px; }
+.hn-pill { font-size: 11px; border-radius: 20px; padding: 1px 8px; border: 1px solid var(--hn-line); color: var(--hn-dim); }

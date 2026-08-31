@@ -31,7 +31,14 @@ test("bad component type falls back to server", () => {
 
 test("controls with spaces survive tokenizing", () => {
   const ir = parse('component db "V" type=db controls="Req 3.4, 3.5, 4.1"');
-  assert.deepEqual(ir.components[0].controls, ["Req 3.4", "3.5", "4.1"]);
+  assert.deepEqual(ir.components[0].controls, ["Req 3.4", "Req 3.5", "Req 4.1"]);
+});
+
+test("a control list carries its prefix across entries", () => {
+  assert.deepEqual(parse('component x "X" controls="CSCF 1.2, 4.1"').components[0].controls, ["CSCF 1.2", "CSCF 4.1"]);
+  assert.deepEqual(parse('component x "X" controls="A.8.15, A.8.16"').components[0].controls, ["A.8.15", "A.8.16"]);
+  assert.deepEqual(parse('component x "X" controls="AC-3, SC-8"').components[0].controls, ["AC-3", "SC-8"]);
+  assert.deepEqual(parse('component x "X" controls="164.312(b)"').components[0].controls, ["164.312(b)"]);
 });
 
 test("parses flows with data classification and controls", () => {

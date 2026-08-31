@@ -1,0 +1,31 @@
+title SOC 2 production environment
+framework soc2
+
+zone internet "Internet" trust=untrusted
+zone edge "Edge" trust=dmz
+zone appzone "Application tier" trust=restricted
+zone datazone "Data tier" trust=secure
+zone mgmt "Management and monitoring" trust=secure
+
+component customer "Customer" zone=internet type=user
+component engineer "Engineer" zone=internet type=user
+component cdn "CDN" zone=edge type=proxy controls="CC6.6"
+component lb "Load balancer" zone=edge type=lb controls="CC6.6"
+component api "Application API" zone=appzone type=api controls="CC6.1"
+component worker "Background worker" zone=appzone type=service controls="CC8.1"
+component db "Primary database" zone=datazone type=db controls="CC6.1"
+component secrets "Secrets manager" zone=datazone type=hsm controls="CC6.1"
+component backup "Backup store" zone=datazone type=store controls="A1.2"
+component siem "Monitoring and alerting" zone=mgmt type=siem controls="CC7.2"
+component bastion "Access gateway" zone=mgmt type=gateway controls="CC6.1"
+
+flow customer -> cdn "HTTPS" data=internal controls="CC6.7"
+flow cdn -> lb "forward" data=internal controls="CC6.6"
+flow lb -> api "route" data=internal controls="CC6.6"
+flow api -> db "read and write" data=pii controls="CC6.1"
+flow api -> secrets "fetch credential" data=secret controls="CC6.1"
+flow worker -> db "process jobs" data=pii controls="CC6.1"
+flow db -> backup "nightly backup" data=pii controls="A1.2"
+flow api -> siem "application log" data=internal controls="CC7.2"
+flow engineer -> bastion "SSO and MFA" data=secret controls="CC6.1"
+flow bastion -> api "deploy" data=internal controls="CC8.1"

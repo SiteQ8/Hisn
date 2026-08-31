@@ -10,6 +10,7 @@ zone mgmt "Management" trust=management
 component cardholder "Cardholder" zone=internet type=user
 component waf "Web application firewall" zone=dmz type=waf controls="Req 6.6"
 component web "Payment page" zone=dmz type=server controls="Req 4.1"
+component fw "Segmentation firewall" zone=cde type=firewall controls="Req 1.2, 1.3"
 component app "Payment application" zone=cde type=app controls="Req 6.2"
 component vault "Cardholder data store" zone=cde type=db controls="Req 3.4"
 component hsm "Key management HSM" zone=cde type=hsm controls="Req 3.5, 3.6"
@@ -18,8 +19,9 @@ component bastion "Jump host" zone=mgmt type=gateway controls="Req 8.3"
 component staff "Administrator" zone=corp type=user
 
 flow cardholder -> waf "HTTPS" data=chd controls="Req 4.1"
-flow waf -> web "filtered" data=chd
-flow web -> app "tokenize" data=chd controls="Req 3.4"
+flow waf -> web "filtered" data=chd controls="Req 4.1"
+flow web -> fw "into the CDE" data=chd controls="Req 1.3"
+flow fw -> app "tokenize" data=chd controls="Req 3.4"
 flow app -> vault "store token" data=chd controls="Req 3.4"
 flow app -> hsm "encrypt" data=secret controls="Req 3.5"
 flow app -> siem "audit log" data=internal controls="Req 10.2"

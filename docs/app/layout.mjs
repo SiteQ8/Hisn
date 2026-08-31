@@ -19,7 +19,7 @@ const GLYPH_W = 26;
 const MIN_CW = 150;
 const MAX_CW = 300;
 const MARGIN = 28;
-const LEGEND_H = 54;
+const LEGEND_H = 70;
 
 function compWidth(c) {
   const labelW = c.label.length * CHAR_W;
@@ -81,8 +81,9 @@ export function layout(ir) {
 
   // route flows between components
   const flows = ir.flows
-    .filter((f) => byId[f.from] && byId[f.to])
-    .map((f, i) => {
+    .map((f, i) => ({ f, i }))
+    .filter((x) => byId[x.f.from] && byId[x.f.to])
+    .map(({ f, i }) => {
       const a = byId[f.from], b = byId[f.to];
       let d, mx, my;
       if (a.id === b.id) {

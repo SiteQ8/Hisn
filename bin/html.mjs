@@ -16,11 +16,13 @@ export function toHTML(model, svg, options) {
   options = options || {};
   const css = readFileSync(join(APP, "styles.css"), "utf8");
   const viewer = readFileSync(join(APP, "viewer.js"), "utf8");
+  const reviewJs = readFileSync(join(APP, "review.js"), "utf8");
   const light = options.theme === "light";
   const P = palette(light ? "light" : "dark");
   const title = model.title || options.title || "Security blueprint";
   const name = slug(title);
   const framework = model.framework || "";
+  const review = options.review || { findings: [], counts: { high: 0, medium: 0, low: 0 }, coverage: { named: 0 } };
 
   const toolbar = `
     <div class="hn-toolbar">
@@ -34,6 +36,8 @@ export function toHTML(model, svg, options) {
       <span class="hn-spacer"></span>
       <span class="hn-hint">click a component to trace its data flows</span>
     </div>`;
+
+  const panel = `<div class="hn-review" id="hn-review" data-open="0"></div>`;
 
   return `<!doctype html>
 <html lang="en">
@@ -52,14 +56,19 @@ ${css}
 <div id="hn-root" class="hn-app${light ? " hn-light" : ""}">
 ${toolbar}
 <div class="hn-stage">${svg}</div>
+${panel}
 </div>
 <script>${viewer}</script>
+<script>${reviewJs}</script>
 <script>
 (function(){
   var opts = { keys:true, name:${JSON.stringify(name)}, title:${JSON.stringify(title)}, framework:${JSON.stringify(framework)},
     bg:${JSON.stringify(P.bg)}, text:${JSON.stringify(P.text)}, dim:${JSON.stringify(P.dim)}, line:${JSON.stringify(P.line)}, accent:${JSON.stringify(P.accent)} };
+  var review = ${JSON.stringify(review)};
+  opts.flagged = window.HisnReview.flagged(review);
   var api = window.HisnViewer.init(document.getElementById("hn-root"), opts);
   if(!api) return;
+  window.HisnReview.render(document.getElementById("hn-review"), review, api);
   document.getElementById("hn-zin").onclick=function(){api.zoomBy(1.15)};
   document.getElementById("hn-zout").onclick=function(){api.zoomBy(1/1.15)};
   document.getElementById("hn-zreset").onclick=function(){api.resetView()};

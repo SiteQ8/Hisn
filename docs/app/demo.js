@@ -2,12 +2,14 @@
 // the toolbar to the viewer, and switches theme by re rendering the diagram with
 // the other palette (the diagram bakes its colors, so a re render is how it
 // themes). The engine is the same module the command line uses.
-import { build, palette, templates } from "./engine.mjs";
+import { build, palette, templates, templateNames, templateLabels } from "./engine.mjs";
 
 const src = document.getElementById("hn-src");
 const stage = document.getElementById("hn-stage");
 const err = document.getElementById("hn-err");
 const root = document.getElementById("hn-root");
+const reviewEl = document.getElementById("hn-review");
+const picker = document.getElementById("hn-picker");
 let theme = "dark";
 let api = null;
 
@@ -33,25 +35,34 @@ function render() {
   stage.innerHTML = built.svg;
   if (api) api.destroy();
   const P = palette(theme);
+  const review = { findings: built.findings, counts: built.counts, coverage: built.coverage };
   api = window.HisnViewer.init(root, {
+    flagged: window.HisnReview.flagged(review),
     name: (built.model.title || "hisn").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "hisn",
     title: built.model.title,
     framework: built.model.framework,
     bg: P.bg, text: P.text, dim: P.dim, line: P.line, accent: P.accent,
     keys: false,
   });
+  window.HisnReview.render(reviewEl, review, api);
   wire();
 }
 
 let t = null;
 src.addEventListener("input", () => { clearTimeout(t); t = setTimeout(render, 280); });
 
-document.querySelectorAll("[data-tpl]").forEach((b) => {
+for (const name of templateNames) {
+  const b = document.createElement("button");
+  b.className = "hn-btn";
+  b.textContent = templateLabels[name] || name;
   b.addEventListener("click", () => {
-    src.value = templates[b.getAttribute("data-tpl")] || "";
+    picker.querySelectorAll(".hn-on").forEach((x) => x.classList.remove("hn-on"));
+    b.classList.add("hn-on");
+    src.value = templates[name] || "";
     render();
   });
-});
+  picker.appendChild(b);
+}
 
 document.getElementById("hn-theme").addEventListener("click", () => {
   theme = theme === "dark" ? "light" : "dark";
@@ -62,4 +73,5 @@ document.getElementById("hn-theme").addEventListener("click", () => {
 });
 
 src.value = templates.pci;
+if (picker.firstChild) picker.firstChild.classList.add("hn-on");
 render();

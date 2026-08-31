@@ -1,0 +1,29 @@
+title HIPAA security rule ePHI environment
+framework hipaa
+
+zone internet "Internet" trust=untrusted
+zone dmz "DMZ" trust=dmz
+zone clinical "Clinical network" trust=restricted
+zone ephi "ePHI environment" trust=secure
+zone mgmt "Management" trust=management
+
+component patient "Patient" zone=internet type=user
+component portal "Patient portal WAF" zone=dmz type=waf controls="164.312(e)(1)"
+component portalapp "Portal front end" zone=dmz type=server controls="164.312(e)(1)"
+component fw "Segmentation firewall" zone=ephi type=firewall controls="164.312(a)(1)"
+component vpn "Clinician access gateway" zone=ephi type=gateway controls="164.312(d)"
+component ehr "Electronic health record" zone=ephi type=app controls="164.312(a)(1)"
+component ephidb "ePHI data store" zone=ephi type=db controls="164.312(a)(2)(iv)"
+component backup "Encrypted backup" zone=ephi type=store controls="164.308(a)(7)(ii)(A)"
+component audit "Audit and monitoring" zone=mgmt type=siem controls="164.312(b)"
+component clinician "Clinician" zone=clinical type=user
+
+flow patient -> portal "HTTPS" data=pii controls="164.312(e)(1)"
+flow portal -> portalapp "filtered" data=pii controls="164.312(e)(1)"
+flow portalapp -> fw "into the ePHI zone" data=pii controls="164.312(a)(1)"
+flow fw -> ehr "record request" data=pii controls="164.312(a)(1)"
+flow ehr -> ephidb "read and write ePHI" data=pii controls="164.312(a)(2)(iv)"
+flow ephidb -> backup "encrypted backup" data=pii controls="164.308(a)(7)(ii)(A)"
+flow ehr -> audit "activity log" data=internal controls="164.312(b)"
+flow clinician -> vpn "authenticate" data=internal controls="164.312(d)"
+flow vpn -> ehr "clinical access" data=pii controls="164.312(a)(1)"

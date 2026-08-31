@@ -1,0 +1,31 @@
+title ISO 27001 information security zones
+framework iso27001
+
+zone internet "Internet" trust=untrusted
+zone perimeter "Perimeter" trust=dmz
+zone corporate "Corporate network" trust=restricted
+zone vault "Restricted information" trust=secure
+zone soc "Security operations" trust=secure
+
+component external "External party" zone=internet type=user
+component fw "Perimeter firewall" zone=perimeter type=firewall controls="A.8.20"
+component vpn "Remote access gateway" zone=perimeter type=gateway controls="A.8.21"
+component staff "Employee" zone=corporate type=user
+component fileshare "Corporate file share" zone=corporate type=store controls="A.5.15"
+component jump "Privileged access host" zone=vault type=gateway controls="A.8.2"
+component app "Business application" zone=vault type=app controls="A.8.9"
+component crown "Restricted data store" zone=vault type=db controls="A.8.24"
+component keys "Key management" zone=vault type=hsm controls="A.8.24"
+component log "Logging and monitoring" zone=soc type=siem controls="A.8.15, A.8.16"
+component dlp "Data leakage prevention" zone=soc type=ids controls="A.8.12"
+
+flow external -> fw "inbound" data=internal controls="A.8.20"
+flow fw -> vpn "tunnel" data=secret controls="A.8.21"
+flow vpn -> jump "remote access" data=internal controls="A.8.5"
+flow staff -> fileshare "day to day" data=internal controls="A.5.15"
+flow staff -> jump "privileged access" data=secret controls="A.8.2"
+flow jump -> app "administer" data=internal controls="A.8.2"
+flow app -> crown "read and write" data=secret controls="A.8.24"
+flow app -> keys "encryption keys" data=secret controls="A.8.24"
+flow app -> log "events" data=internal controls="A.8.15"
+flow dlp -> fileshare "inspect" data=internal controls="A.8.12"

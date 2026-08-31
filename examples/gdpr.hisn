@@ -1,0 +1,27 @@
+title GDPR personal data processing
+framework gdpr
+
+zone public "Data subject" trust=untrusted
+zone edge "Collection" trust=dmz
+zone processing "Processing" trust=restricted
+zone store "Personal data store" trust=secure
+zone governance "Governance" trust=secure
+
+component subject "Data subject" zone=public type=user
+component consent "Consent capture" zone=edge type=app controls="Art. 7"
+component api "Intake API" zone=edge type=api controls="Art. 32"
+component svc "Processing service" zone=processing type=app controls="Art. 25"
+component erasure "Erasure service" zone=processing type=service controls="Art. 17"
+component processor "Sub processor" zone=processing type=cloud controls="Art. 28"
+component pdb "Personal data store" zone=store type=db controls="Art. 32"
+component ropa "Records of processing" zone=governance type=service controls="Art. 30"
+component log "Breach detection" zone=governance type=siem controls="Art. 33"
+
+flow subject -> consent "gives consent" data=pii controls="Art. 7"
+flow consent -> api "submits" data=pii controls="Art. 32"
+flow api -> svc "processes" data=pii controls="Art. 6"
+flow svc -> pdb "stores" data=pii controls="Art. 32"
+flow svc -> processor "shares under contract" data=pii controls="Art. 28"
+flow erasure -> pdb "erases on request" data=pii controls="Art. 17"
+flow svc -> log "records events" data=internal controls="Art. 33"
+flow ropa -> svc "records processing" data=internal controls="Art. 30"

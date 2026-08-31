@@ -69,7 +69,7 @@ export function renderSVG(model, P) {
     const label = f.label || (f.data !== "internal" ? DATA_LABEL[f.data] : "");
     parts.push(
       `<g class="hn-flow" data-flow="${f.id}" data-from="${esc(f.from)}" data-to="${esc(f.to)}" data-data="${f.data}">` +
-      `<path class="hn-flow-path" d="${f.d}" fill="none" stroke="${col}" stroke-width="1.8"${f.boundary ? ' stroke-dasharray="0"' : ""} marker-end="url(#hn-a-${f.data})"/>` +
+      `<path class="hn-flow-path" d="${f.d}" fill="none" stroke="${col}" stroke-width="1.8"${f.controls.length ? "" : ' stroke-dasharray="7 5"'} marker-end="url(#hn-a-${f.data})"/>` +
       (f.boundary ? `<circle class="hn-cross" cx="${f.mx}" cy="${f.my + 4}" r="0"/>` : "") +
       (label
         ? `<g class="hn-flow-label"><rect class="hn-flow-bg" x="${f.mx - label.length * 3.3 - 5}" y="${f.my - 9}" width="${label.length * 6.6 + 10}" height="16" rx="4" fill="${P.flowBg}" opacity="0.85"/>` +
@@ -113,6 +113,7 @@ export function renderSVG(model, P) {
     parts.push(`<line x1="${lx}" y1="${ly + 12}" x2="${lx + 18}" y2="${ly + 12}" stroke="${col}" stroke-width="2.4"/><text x="${lx + 24}" y="${ly + 16}" fill="${P.text}" font-size="11">${esc(DATA_LABEL[dc] || dc)}</text>`);
     lx += 24 + (DATA_LABEL[dc] || dc).length * 6.6 + 18;
   }
+  parts.push(`<text x="${28}" y="${ly + 38}" fill="${P.dim}" font-size="10">a dashed flow names no control</text>`);
   parts.push(`</g>`);
 
   parts.push(`</g></svg>`);

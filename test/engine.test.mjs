@@ -2,13 +2,16 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { build, VERSION, templates, templateNames } from "../docs/app/engine.mjs";
 
-test("version is 0.1.0", () => {
-  assert.equal(VERSION, "0.1.0");
+test("version is 0.2.0", () => {
+  assert.equal(VERSION, "0.2.0");
 });
 
-test("build returns ir, model, and svg", () => {
+test("build returns ir, model, svg, and a review", () => {
   const r = build('zone z "Z" trust=secure\ncomponent a "A" zone=z\nflow a -> a');
   assert.ok(r.ir && r.model && typeof r.svg === "string");
+  assert.ok(Array.isArray(r.findings));
+  assert.ok(r.counts && typeof r.counts.high === "number");
+  assert.ok(r.coverage && typeof r.coverage.named === "number");
 });
 
 test("light and dark themes render different colors", () => {

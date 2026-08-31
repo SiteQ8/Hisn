@@ -4,17 +4,27 @@ export { parse, validate, TRUST_LEVELS, DATA_CLASSES, COMPONENT_TYPES } from "./
 export { layout } from "./layout.mjs";
 export { renderSVG } from "./render.mjs";
 export { palette } from "./theme.mjs";
-export { templates, templateNames } from "./templates.mjs";
+export { templates, templateNames, templateLabels } from "./templates.mjs";
+export { check, matrix, matrixMarkdown, matrixCSV } from "./checks.mjs";
 
 import { parse } from "./parse.mjs";
 import { layout } from "./layout.mjs";
 import { renderSVG } from "./render.mjs";
 import { palette } from "./theme.mjs";
+import { check } from "./checks.mjs";
 
-export const VERSION = "0.1.0";
+export const VERSION = "0.2.0";
 
 export function build(source, theme) {
   const ir = parse(source);
   const model = layout(ir);
-  return { ir, model, svg: renderSVG(model, palette(theme === "light" ? "light" : "dark")) };
+  const review = check(ir);
+  return {
+    ir,
+    model,
+    svg: renderSVG(model, palette(theme === "light" ? "light" : "dark")),
+    findings: review.findings,
+    counts: review.counts,
+    coverage: review.coverage,
+  };
 }

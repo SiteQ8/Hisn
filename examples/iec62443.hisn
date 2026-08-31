@@ -1,0 +1,29 @@
+title IEC 62443 zones and conduits
+framework iec62443
+
+zone enterprise "Enterprise network" trust=untrusted
+zone idmz "Industrial DMZ" trust=dmz
+zone operations "Operations" trust=restricted
+zone control "Basic control" trust=secure
+zone safety "Safety instrumented" trust=secure
+
+component erp "Business systems" zone=enterprise type=server controls="SR 5.2"
+component fw "Conduit firewall" zone=idmz type=firewall controls="SR 5.2"
+component mirror "Historian mirror" zone=idmz type=store controls="SR 5.2"
+component eng "Engineer" zone=operations type=user
+component hmi "Operator HMI" zone=operations type=app controls="SR 1.1"
+component historian "Process historian" zone=operations type=store controls="SR 6.1"
+component siem "Process monitoring" zone=operations type=siem controls="SR 6.2"
+component plc "Programmable controller" zone=control type=server controls="SR 3.1"
+component io "Field devices" zone=control type=service controls="SR 3.1"
+component sis "Safety instrumented system" zone=safety type=server controls="SR 5.1"
+
+flow erp -> fw "business data" data=internal controls="SR 5.2"
+flow fw -> mirror "replicate" data=internal controls="SR 5.2"
+flow mirror -> historian "mirrored history" data=internal controls="SR 5.2"
+flow eng -> hmi "operate" data=internal controls="SR 1.1"
+flow hmi -> historian "trend data" data=internal controls="SR 6.1"
+flow hmi -> plc "commands" data=internal controls="SR 3.1"
+flow plc -> io "control loop" data=internal controls="SR 3.1"
+flow plc -> sis "safety interlock" data=internal controls="SR 5.1"
+flow historian -> siem "process events" data=internal controls="SR 6.2"

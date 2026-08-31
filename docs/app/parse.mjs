@@ -63,10 +63,22 @@ function opts(tokens) {
   return o;
 }
 
-// controls="a, b, c" arrives as one token whose value may still hold the quotes
+// controls="a, b, c" arrives as one token whose value may still hold the quotes.
+// A list is usually written the way a person says it, naming the scheme once and
+// then only the numbers, as in "Req 3.5, 3.6" or "CSCF 1.2, 4.1", so an entry
+// that is only a number inherits the prefix of the entry before it.
 function parseControls(raw) {
   if (!raw) return [];
-  return raw.replace(/^"|"$/g, "").split(",").map((s) => s.trim()).filter(Boolean);
+  const parts = raw.replace(/^"|"$/g, "").split(",").map((s) => s.trim()).filter(Boolean);
+  const out = [];
+  let prefix = "";
+  for (const p of parts) {
+    const m = /^([A-Za-z][A-Za-z.]*)\s+\S/.exec(p);
+    if (m) { prefix = m[1] + " "; out.push(p); }
+    else if (prefix && /^[0-9]/.test(p)) out.push(prefix + p);
+    else out.push(p);
+  }
+  return out;
 }
 
 export function parse(text) {

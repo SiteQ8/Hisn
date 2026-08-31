@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Hisn: security and compliance blueprints as code</title>
-<meta name="description" content="Diagram as code for security and compliance reference architectures. Built in blueprints for PCI DSS, SWIFT CSP, and Zero Trust, as one self contained interactive HTML file.">
-<link rel="stylesheet" href="app/styles.css?v=0.1.0">
+<meta name="description" content="Diagram as code for security and compliance reference architectures. Eight framework blueprints including PCI DSS, SWIFT CSP, Zero Trust, HIPAA, GDPR, SOC 2, ISO 27001, and IEC 62443, with a built in review that finds control gaps.">
+<link rel="stylesheet" href="app/styles.css?v=0.2.0">
 <style>
   html,body{margin:0;height:100%}
   body{background:var(--hn-bg);color:var(--hn-text);font:14px/1.55 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;display:flex;flex-direction:column}
@@ -27,17 +27,13 @@
 <body>
 <header>
   <h1>Hisn</h1>
-  <span class="tag">security and compliance blueprints as code</span>
+  <span class="tag">security and compliance blueprints as code, reviewed as you write them</span>
   <span class="sp"></span>
   <a href="https://github.com/SiteQ8/Hisn">GitHub</a>
 </header>
 <main>
   <div class="col">
-    <div class="picker">
-      <button class="hn-btn" data-tpl="pci">PCI DSS</button>
-      <button class="hn-btn" data-tpl="swift">SWIFT CSP</button>
-      <button class="hn-btn" data-tpl="zerotrust">Zero Trust</button>
-    </div>
+    <div class="picker" id="hn-picker"></div>
     <textarea id="hn-src" spellcheck="false" aria-label="Blueprint source"></textarea>
     <div class="err" id="hn-err"></div>
   </div>
@@ -55,10 +51,12 @@
         <span class="hn-hint">click a component to trace its data flows</span>
       </div>
       <div class="hn-stage" id="hn-stage"></div>
+      <div class="hn-review" id="hn-review" data-open="0"></div>
     </div>
   </div>
 </main>
-<script src="app/viewer.js?v=0.1.0"></script>
-<script type="module" src="app/demo.js?v=0.1.0"></script>
+<script src="app/viewer.js?v=0.2.0"></script>
+<script src="app/review.js?v=0.2.0"></script>
+<script type="module" src="app/demo.js?v=0.2.0"></script>
 </body>
 </html>

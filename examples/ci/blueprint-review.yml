@@ -1,8 +1,9 @@
 # Review the security blueprints in a repository on every push and pull request.
 #
-# Copy this into .github/workflows/ in your own repository. It fails the run when
-# any blueprint has a high finding, so an architecture change that moves sensitive
-# data without naming a control does not merge quietly.
+# Copy this into .github/workflows/ in your own repository. The first job fails
+# when any blueprint has a high finding. The second compares each changed
+# blueprint against the base branch and fails when the change weakens the design,
+# so a pull request that quietly removes a control does not merge.
 name: blueprint review
 
 on:
@@ -24,5 +25,29 @@ jobs:
           for f in **/*.hisn; do
             echo "== $f"
             npx --yes github:SiteQ8/Hisn check "$f" --strict || failed=1
+          done
+          exit $failed
+
+  change:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Compare changed blueprints with the base branch
+        run: |
+          set -u
+          base="origin/${{ github.base_ref }}"
+          git fetch origin "${{ github.base_ref }}" --depth=1
+          failed=0
+          for f in $(git diff --name-only "$base"...HEAD -- '*.hisn'); do
+            if git show "$base:$f" > /tmp/before.hisn 2>/dev/null; then
+              echo "== $f"
+              npx --yes github:SiteQ8/Hisn diff /tmp/before.hisn "$f" --strict || failed=1
+            fi
           done
           exit $failed

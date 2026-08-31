@@ -50,6 +50,24 @@ each step.
    ```
    npx github:SiteQ8/Hisn matrix cde.hisn -o coverage.md
    ```
+7. To review an architecture change, compare the two revisions with `diff` below.
+
+## Comparing two revisions
+
+When someone asks what changed in an architecture, or whether a change is safe,
+compare the two revisions:
+
+```
+npx github:SiteQ8/Hisn diff before.hisn after.hisn
+npx github:SiteQ8/Hisn diff before.hisn after.hisn -o change.html
+```
+
+It separates what got weaker from what got better. Regressions are a control
+removed, a zone made less trusted, a component moved somewhere less trusted, a
+flow carrying more sensitive data than before, a flow quietly marked less
+sensitive, and any review finding the earlier revision did not have. Report the
+regressions first and plainly, since that is the answer to whether the change is
+safe. `--strict` exits non zero on a high regression.
 
 ## The language
 

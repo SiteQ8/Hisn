@@ -1,7 +1,7 @@
 {
   "name": "hisn",
-  "version": "0.3.0",
-  "description": "Security and compliance blueprints as code. Draw a trust zoned reference architecture from a short text source, then review it for control gaps and framework coverage. Eight frameworks. Zero dependencies.",
+  "version": "0.4.0",
+  "description": "Security and compliance blueprints as code. Draw a trust zoned reference architecture, review it for control gaps and framework coverage, and diff two revisions to catch a change that weakens the design. Eight frameworks. Zero dependencies.",
   "type": "module",
   "bin": {
     "hisn": "bin/hisn.mjs"

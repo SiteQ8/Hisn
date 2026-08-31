@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.4.0
+
+Hisn now reviews an architecture change, not just an architecture.
+
+- A new `diff` command comparing two revisions of a blueprint. It reports the
+  structural change and separates what got weaker from what got better: a control
+  removed, a zone made less trusted, a component moved somewhere less trusted, a
+  flow carrying more sensitive data than before, a flow quietly marked less
+  sensitive, and any review finding the earlier revision did not have. Controls
+  added and findings resolved come back as improvements.
+- Findings are compared by what they are about rather than by position, so adding
+  or removing a flow does not make unrelated findings look new.
+- `-o` writes the change as a picture: added in green, changed in amber, removed
+  in red dashed, drawn over the union of both revisions with a change legend.
+- `--strict` exits non zero on a high regression, so a pull request that weakens
+  the architecture fails.
+- The bundled GitHub Actions workflow now has a second job that compares each
+  changed blueprint against the base branch.
+- 77 tests.
+
 ## 0.3.0
 
 Hisn now knows what each framework expects a design to show.

@@ -9,6 +9,7 @@ const DARK = {
   flowText: "#9aa8c4", flowBg: "#111a2b",
   trust: { untrusted: "#e5647d", dmz: "#e0913a", restricted: "#d4b83a", secure: "#46c07a", management: "#6f8dff" },
   data: { public: "#8aa0c0", internal: "#6b7ea6", pii: "#e0b13a", chd: "#e5647d", secret: "#a78bff" },
+  change: { added: "#3fb950", removed: "#f0616d", changed: "#d29922", same: "#5c6a85" },
 };
 const LIGHT = {
   bg: "#f5f7fb", panel: "#ffffff", line: "#dbe3ef", text: "#17203a", dim: "#586a8e", accent: "#12a594",
@@ -16,12 +17,15 @@ const LIGHT = {
   flowText: "#586a8e", flowBg: "#ffffff",
   trust: { untrusted: "#d6455f", dmz: "#c07a1a", restricted: "#a98d1a", secure: "#1a9e5f", management: "#3a5fe0" },
   data: { public: "#6a7fa0", internal: "#7f90ad", pii: "#b1841a", chd: "#d6455f", secret: "#7c5cff" },
+  change: { added: "#1a7f37", removed: "#cf222e", changed: "#9a6700", same: "#8c9ab5" },
 };
 export function palette(theme) { return theme === "light" ? LIGHT : DARK; }
 
 export const TRUST_LABEL = {
   untrusted: "untrusted", dmz: "DMZ", restricted: "restricted", secure: "secure", management: "management",
 };
+export const CHANGE_LABEL = { added: "added", removed: "removed", changed: "changed", same: "unchanged" };
+
 export const DATA_LABEL = {
   public: "public", internal: "internal", pii: "PII", chd: "cardholder data", secret: "secret",
 };

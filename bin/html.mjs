@@ -34,7 +34,7 @@ export function toHTML(model, svg, options) {
       <button class="hn-btn" id="hn-png" title="Export PNG">PNG</button>
       <button class="hn-btn" id="hn-card" title="Export a 1200 by 630 share image">Card</button>
       <span class="hn-spacer"></span>
-      <span class="hn-hint">click a component to trace its data flows</span>
+      <span class="hn-hint">${options.diff ? "green is added, amber is changed, red dashed is removed" : "click a component to trace its data flows"}</span>
     </div>`;
 
   const panel = `<div class="hn-review" id="hn-review" data-open="0"></div>`;

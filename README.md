@@ -124,14 +124,53 @@ $ hisn matrix cde.hisn
 | Req 3.5 | Key management HSM | app to hsm |
 ```
 
+## Change review
+
+An architecture changes in a pull request the same way code does, and the question
+is not only what moved but whether the change weakened the design. `hisn diff`
+answers both:
+
+```
+$ hisn diff before.hisn after.hisn
+
+  zones       0 added, 0 removed, 0 changed
+  components  1 added, 0 removed, 1 changed
+  flows       1 added, 0 removed, 0 changed
+
+  weaker than before
+
+  high   New: Sensitive data moves with no named control
+          The flow from Checkout to Analytics export carries cardholder data and names no control.
+
+  medium A component lost a control
+          Card vault no longer names Req 3.4.
+
+  review went from 0 high, 0 medium  to  2 high, 0 medium
+```
+
+It reports a control removed, a zone made less trusted, a component moved
+somewhere less trusted, a flow carrying more sensitive data than before, a flow
+quietly marked less sensitive, and any review finding that did not exist in the
+earlier revision. Controls added and findings resolved come back as improvements.
+
+Add `-o change.html` for the picture: added in green, changed in amber, removed in
+red dashed, over the union of both revisions.
+
+![A blueprint change drawn as a diff](docs/diff.png)
+
+`--strict` exits non zero on a high regression, so a pull request that weakens the
+architecture fails the same way a broken test does.
+
 ## Review blueprints in CI
 
-`--strict` exits non zero on a high finding, so a blueprint can gate a pull
-request. There is a ready workflow at
-[examples/ci/blueprint-review.yml](examples/ci/blueprint-review.yml):
+The ready workflow at [examples/ci/blueprint-review.yml](examples/ci/blueprint-review.yml)
+does both halves: it reviews every blueprint in the repository, and it compares
+each changed blueprint against the base branch so a pull request that weakens the
+design fails.
 
 ```
 npx github:SiteQ8/Hisn check cde.hisn --strict
+npx github:SiteQ8/Hisn diff base.hisn cde.hisn --strict
 ```
 
 ## The language
@@ -208,6 +247,7 @@ npx github:SiteQ8/Hisn render phi.hisn -o phi-light.html --theme light
 npx github:SiteQ8/Hisn check phi.hisn --strict
 npx github:SiteQ8/Hisn matrix phi.hisn -o coverage.md
 npx github:SiteQ8/Hisn controls hipaa
+npx github:SiteQ8/Hisn diff old.hisn phi.hisn -o change.html
 npx github:SiteQ8/Hisn card phi.hisn -o phi-card.svg
 npx github:SiteQ8/Hisn serve --open
 ```

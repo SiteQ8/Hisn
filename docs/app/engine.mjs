@@ -7,14 +7,26 @@ export { palette } from "./theme.mjs";
 export { templates, templateNames, templateLabels } from "./templates.mjs";
 export { check, matrix, matrixMarkdown, matrixCSV } from "./checks.mjs";
 export { catalogs, catalogNames, frameworkCoverage, addresses } from "./catalog.mjs";
+export { diffBlueprints, unionIR } from "./diff.mjs";
 
 import { parse } from "./parse.mjs";
 import { layout } from "./layout.mjs";
 import { renderSVG } from "./render.mjs";
 import { palette } from "./theme.mjs";
 import { check } from "./checks.mjs";
+import { diffBlueprints } from "./diff.mjs";
 
-export const VERSION = "0.3.0";
+export const VERSION = "0.4.0";
+
+// Compare two revisions and draw the difference.
+export function buildDiff(beforeSource, afterSource, theme) {
+  const before = parse(beforeSource);
+  const after = parse(afterSource);
+  const d = diffBlueprints(before, after);
+  const model = layout(d.union);
+  const svg = renderSVG(model, palette(theme === "light" ? "light" : "dark"), { diff: true });
+  return { before, after, diff: d, model, svg };
+}
 
 export function build(source, theme) {
   const ir = parse(source);

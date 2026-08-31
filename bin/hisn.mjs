@@ -7,12 +7,12 @@ import { fileURLToPath } from "node:url";
 import { dirname, join, extname, resolve, basename } from "node:path";
 import { createServer } from "node:http";
 
-import { build, validate, templates, templateNames, templateLabels, matrixMarkdown, matrixCSV, catalogs, catalogNames } from "../docs/app/engine.mjs";
+import { build, buildDiff, validate, templates, templateNames, templateLabels, matrixMarkdown, matrixCSV, catalogs, catalogNames } from "../docs/app/engine.mjs";
 import { toHTML, toCard } from "./html.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, "..");
-const VERSION = "0.3.0";
+const VERSION = "0.4.0";
 
 function usage() {
   process.stdout.write(
@@ -25,6 +25,7 @@ Usage:
   hisn check <source> [--json] [--strict]                   review a blueprint for gaps
   hisn matrix <source> [-o table.md] [--csv]                what each named control covers
   hisn controls <framework>                                 what a framework expects a design to show
+  hisn diff <before> <after> [-o out.html] [--strict]       what changed, and whether it got weaker
   hisn card <source> [-o card.svg] [--theme dark|light]     a 1200 by 630 share image
   hisn serve [--port 8400] [--open]                         run the browser demo
   hisn version
@@ -40,8 +41,8 @@ Frameworks: ${templateNames.join(" ")}.
 Data classes: public internal pii chd secret.
 Component types: user internet firewall waf gateway proxy lb server app api db store queue hsm ids siem cloud service.
 
-check exits 1 when a high finding is present and --strict is given, so it can
-gate a pipeline.
+check and diff exit 1 when a high finding or a high regression is present and
+--strict is given, so they can gate a pipeline.
 `);
 }
 
@@ -151,6 +152,65 @@ function cmdCheck(args) {
   return 0;
 }
 
+function cmdDiff(args) {
+  const beforeSrc = readSource(args[0]);
+  const afterSrc = args[1] && !args[1].startsWith("-") ? readSource(args[1]) : null;
+  if (beforeSrc === null || afterSrc === null) {
+    if (afterSrc === null && beforeSrc !== null) console.error("hisn: diff needs two source files, the earlier one first");
+    return 2;
+  }
+  let r;
+  try { r = buildDiff(beforeSrc, afterSrc, argValue(args, "--theme") === "light" ? "light" : "dark"); }
+  catch (e) { console.error("hisn: could not read a source: " + e.message); return 2; }
+
+  const d = r.diff;
+  if (args.includes("--json")) {
+    console.log(JSON.stringify({ summary: d.summary, counts: d.counts, regressions: d.regressions, improvements: d.improvements }, null, 2));
+  } else {
+    const s2 = d.summary;
+    console.log((r.after.title || args[1]) + "  compared with  " + (r.before.title || args[0]));
+    console.log("");
+    console.log("  zones       " + s2.zones.added + " added, " + s2.zones.removed + " removed, " + s2.zones.changed + " changed");
+    console.log("  components  " + s2.components.added + " added, " + s2.components.removed + " removed, " + s2.components.changed + " changed");
+    console.log("  flows       " + s2.flows.added + " added, " + s2.flows.removed + " removed, " + s2.flows.changed + " changed");
+    console.log("");
+    if (d.regressions.length) {
+      console.log("  weaker than before");
+      console.log("");
+      for (const x of d.regressions) {
+        console.log("  " + (x.severity + "        ").slice(0, 7) + x.title);
+        console.log("          " + x.detail);
+        console.log("");
+      }
+    } else {
+      console.log("  nothing in this change weakens the design");
+      console.log("");
+    }
+    if (d.improvements.length) {
+      console.log("  better than before");
+      console.log("");
+      for (const x of d.improvements) console.log("  ok     " + x.title + ": " + x.detail);
+      console.log("");
+    }
+    console.log("  review went from " + d.summary.findingsBefore.high + " high, " + d.summary.findingsBefore.medium + " medium" +
+      "  to  " + d.summary.findingsAfter.high + " high, " + d.summary.findingsAfter.medium + " medium");
+  }
+
+  const out = argValue(args, "-o") || argValue(args, "--output");
+  if (out) {
+    const review = {
+      findings: d.regressions,
+      counts: d.counts,
+      coverage: { named: 0, components: { total: 0, controlled: 0 }, flows: { total: 0, controlled: 0 }, sensitiveFlows: { total: 0, controlled: 0 }, controls: [], framework: null },
+    };
+    writeFileSync(out, toHTML(r.model, r.svg, { theme: argValue(args, "--theme") === "light" ? "light" : "dark", review, diff: true }));
+    console.log("");
+    console.log("wrote " + out);
+  }
+  if (args.includes("--strict") && d.counts.high > 0) return 1;
+  return 0;
+}
+
 function cmdControls(args) {
   const name = (args[0] || "").toLowerCase();
   if (!catalogs[name]) {
@@ -223,6 +283,7 @@ function main() {
   if (cmd === "check") return cmdCheck(args);
   if (cmd === "matrix") return cmdMatrix(args);
   if (cmd === "controls") return cmdControls(args);
+  if (cmd === "diff") return cmdDiff(args);
   if (cmd === "serve") return cmdServe(args);
   if (cmd === "version" || cmd === "--version" || cmd === "-v") { console.log("hisn " + VERSION); return 0; }
   if (cmd === "help" || cmd === "--help" || cmd === "-h" || !cmd) { usage(); return 0; }

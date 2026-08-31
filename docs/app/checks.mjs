@@ -13,6 +13,7 @@
 // control is implemented.
 
 import { TRUST_RANK } from "./parse.mjs";
+import { frameworkCoverage } from "./catalog.mjs";
 
 const SENSITIVE = new Set(["chd", "secret"]);
 const SEVERITY_ORDER = { high: 0, medium: 1, low: 2 };
@@ -219,6 +220,7 @@ export function check(ir) {
       sensitiveFlows: { total: sensitiveFlows.length, controlled: sensitiveFlows.filter(controlled).length },
       controls: [...controls].sort(),
       named: elements ? Math.round((controlledElements / elements) * 100) : 0,
+      framework: frameworkCoverage(ir),
     },
   };
 }

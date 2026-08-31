@@ -1,7 +1,7 @@
 {
   "name": "hisn",
-  "version": "0.2.0",
-  "description": "Diagram as code for security and compliance reference architectures, with a built in review that finds control gaps. Blueprints for PCI DSS, SWIFT CSP, Zero Trust, HIPAA, GDPR, SOC 2, ISO 27001, and IEC 62443. Zero dependencies.",
+  "version": "0.3.0",
+  "description": "Security and compliance blueprints as code. Draw a trust zoned reference architecture from a short text source, then review it for control gaps and framework coverage. Eight frameworks. Zero dependencies.",
   "type": "module",
   "bin": {
     "hisn": "bin/hisn.mjs"

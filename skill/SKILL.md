@@ -39,7 +39,13 @@ each step.
 
    Add `--json` to parse the result, or `--strict` to exit non zero when a high
    finding is present, which is how it gates a pipeline.
-5. For a control coverage table, for example to paste into a review document:
+5. To see what a framework expects a design to show, and what this blueprint is
+   missing, read the coverage block that `check` prints, or list a catalog:
+
+   ```
+   npx github:SiteQ8/Hisn controls pci
+   ```
+6. For a control coverage table, for example to paste into a review document:
 
    ```
    npx github:SiteQ8/Hisn matrix cde.hisn -o coverage.md
@@ -106,6 +112,12 @@ flow app -> siem "audit log" data=internal controls="Req 10.2"
 
 In the drawing, a flow that names no control is dashed, so gaps are visible
 without opening the review.
+
+Separately from the findings, `check` reports framework coverage: which areas of
+the framework catalog the blueprint speaks to and which it never mentions. A
+control addresses an entry when it starts with it, so `Req 3.4` addresses `Req 3`.
+Coverage is a checklist, not a finding, and reaching 100% means the picture
+mentions every area a drawing can show, not that the programme is compliant.
 
 ## Tips
 

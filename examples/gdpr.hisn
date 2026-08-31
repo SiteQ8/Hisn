@@ -10,7 +10,7 @@ zone governance "Governance" trust=secure
 component subject "Data subject" zone=public type=user
 component consent "Consent capture" zone=edge type=app controls="Art. 7"
 component api "Intake API" zone=edge type=api controls="Art. 32"
-component svc "Processing service" zone=processing type=app controls="Art. 25"
+component svc "Processing service" zone=processing type=app controls="Art. 25, 5"
 component erasure "Erasure service" zone=processing type=service controls="Art. 17"
 component processor "Sub processor" zone=processing type=cloud controls="Art. 28"
 component pdb "Personal data store" zone=store type=db controls="Art. 32"

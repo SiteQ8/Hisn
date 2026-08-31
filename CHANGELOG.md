@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.3.0
+
+Hisn now knows what each framework expects a design to show.
+
+- A control catalog per framework, listing the requirement families a drawing can
+  speak to. `check` reports which of them the blueprint addresses and which it
+  never mentions, so the review answers both whether controls are named and
+  whether the design covers the ground.
+- The catalogs name families rather than sub numbered controls, because sub
+  numbers move between versions of a framework. A blueprint control addresses an
+  entry when it starts with it, so Req 3.4 addresses Req 3.
+- A new `controls` command that prints what a framework expects.
+- Framework coverage appears in the review panel of every generated file and in
+  the demo, as a checklist under the findings.
+- Running the new coverage against the reference blueprints found real gaps, so
+  the PCI blueprint gained intrusion detection and a configuration baseline, HIPAA
+  gained an integrity control, GDPR gained the processing principles, ISO 27001
+  gained segregation of networks, and IEC 62443 gained use control and resource
+  availability. All eight now address their whole catalog.
+- A ready GitHub Actions workflow at examples/ci/blueprint-review.yml that fails a
+  pull request when a blueprint has a high finding.
+- 62 tests.
+
 ## 0.2.0
 
 Hisn now reviews a blueprint, not just draws it.

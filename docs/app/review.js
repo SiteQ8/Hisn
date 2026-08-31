@@ -14,7 +14,27 @@
     if (counts.medium) bits.push(counts.medium + " medium");
     if (counts.low) bits.push(counts.low + " low");
     const found = bits.length ? bits.join(", ") : "nothing to flag";
-    return found + "  |  controls named on " + coverage.named + "% of elements";
+    let out = found + "  |  controls named on " + coverage.named + "% of elements";
+    if (coverage.framework) out += "  |  " + coverage.framework.label + " " + coverage.framework.percent + "%";
+    return out;
+  }
+
+  // the framework checklist, shown under the findings
+  function coverageBlock(coverage) {
+    const fc = coverage && coverage.framework;
+    if (!fc) return "";
+    let html = '<div class="hn-cover"><div class="hn-cover-h">' + esc(fc.label) +
+      ": " + fc.addressed.length + " of " + fc.expected + " areas addressed</div>";
+    for (const a of fc.addressed) {
+      html += '<div class="hn-cover-row"><span class="hn-tick hn-yes"></span><span class="hn-cid">' +
+        esc(a.id) + '</span><span class="hn-ct">' + esc(a.title) + "</span></div>";
+    }
+    for (const m of fc.missing) {
+      html += '<div class="hn-cover-row"><span class="hn-tick hn-no"></span><span class="hn-cid">' +
+        esc(m.id) + '</span><span class="hn-ct">' + esc(m.title) + "</span></div>";
+    }
+    html += "</div>";
+    return html;
   }
 
   // container: the element to fill. review: { findings, counts, coverage }.
@@ -34,7 +54,7 @@
       "</div>";
 
     if (!f.length) {
-      html += '<div class="hn-review-list"><div class="hn-clean">No gaps found by the rules Hisn checks. That means the blueprint names a control everywhere these rules look, not that any control is implemented.</div></div>';
+      html += '<div class="hn-review-list"><div class="hn-clean">No gaps found by the rules Hisn checks. That means the blueprint names a control everywhere these rules look, not that any control is implemented.</div>' + coverageBlock(coverage) + "</div>";
     } else {
       html += '<div class="hn-review-list">';
       for (const item of f) {
@@ -47,7 +67,7 @@
           '<div class="hn-finding-f">' + esc(item.fix) + "</div>" +
           "</div></div>";
       }
-      html += "</div>";
+      html += coverageBlock(coverage) + "</div>";
     }
     container.innerHTML = html;
     container.setAttribute("data-open", open ? "1" : "0");

@@ -8,7 +8,7 @@ zone vault "Restricted information" trust=secure
 zone soc "Security operations" trust=secure
 
 component external "External party" zone=internet type=user
-component fw "Perimeter firewall" zone=perimeter type=firewall controls="A.8.20"
+component fw "Perimeter firewall" zone=perimeter type=firewall controls="A.8.20, A.8.22"
 component vpn "Remote access gateway" zone=perimeter type=gateway controls="A.8.21"
 component staff "Employee" zone=corporate type=user
 component fileshare "Corporate file share" zone=corporate type=store controls="A.5.15"

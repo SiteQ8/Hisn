@@ -6,6 +6,7 @@ export { renderSVG } from "./render.mjs";
 export { palette } from "./theme.mjs";
 export { templates, templateNames, templateLabels } from "./templates.mjs";
 export { check, matrix, matrixMarkdown, matrixCSV } from "./checks.mjs";
+export { catalogs, catalogNames, frameworkCoverage, addresses } from "./catalog.mjs";
 
 import { parse } from "./parse.mjs";
 import { layout } from "./layout.mjs";
@@ -13,7 +14,7 @@ import { renderSVG } from "./render.mjs";
 import { palette } from "./theme.mjs";
 import { check } from "./checks.mjs";
 
-export const VERSION = "0.2.0";
+export const VERSION = "0.3.0";
 
 export function build(source, theme) {
   const ir = parse(source);

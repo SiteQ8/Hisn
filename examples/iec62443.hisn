@@ -9,9 +9,9 @@ zone safety "Safety instrumented" trust=secure
 
 component erp "Business systems" zone=enterprise type=server controls="SR 5.2"
 component fw "Conduit firewall" zone=idmz type=firewall controls="SR 5.2"
-component mirror "Historian mirror" zone=idmz type=store controls="SR 5.2"
+component mirror "Historian mirror" zone=idmz type=store controls="SR 5.2, 7.3"
 component eng "Engineer" zone=operations type=user
-component hmi "Operator HMI" zone=operations type=app controls="SR 1.1"
+component hmi "Operator HMI" zone=operations type=app controls="SR 1.1, 2.1"
 component historian "Process historian" zone=operations type=store controls="SR 6.1"
 component siem "Process monitoring" zone=operations type=siem controls="SR 6.2"
 component plc "Programmable controller" zone=control type=server controls="SR 3.1"

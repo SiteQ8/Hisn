@@ -7,12 +7,12 @@ import { fileURLToPath } from "node:url";
 import { dirname, join, extname, resolve, basename } from "node:path";
 import { createServer } from "node:http";
 
-import { build, validate, templates, templateNames, templateLabels, matrixMarkdown, matrixCSV } from "../docs/app/engine.mjs";
+import { build, validate, templates, templateNames, templateLabels, matrixMarkdown, matrixCSV, catalogs, catalogNames } from "../docs/app/engine.mjs";
 import { toHTML, toCard } from "./html.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, "..");
-const VERSION = "0.2.0";
+const VERSION = "0.3.0";
 
 function usage() {
   process.stdout.write(
@@ -24,6 +24,7 @@ Usage:
   hisn template <name> [-o file.hisn]                       print a reference blueprint
   hisn check <source> [--json] [--strict]                   review a blueprint for gaps
   hisn matrix <source> [-o table.md] [--csv]                what each named control covers
+  hisn controls <framework>                                 what a framework expects a design to show
   hisn card <source> [-o card.svg] [--theme dark|light]     a 1200 by 630 share image
   hisn serve [--port 8400] [--open]                         run the browser demo
   hisn version
@@ -135,10 +136,35 @@ function cmdCheck(args) {
       coverage.flows.controlled + " of " + coverage.flows.total + " flows");
     console.log("  sensitive flows with a named control: " + coverage.sensitiveFlows.controlled + " of " + coverage.sensitiveFlows.total);
     if (coverage.controls.length) console.log("  controls referenced: " + coverage.controls.join(", "));
+
+    const fc = coverage.framework;
+    if (fc) {
+      console.log("");
+      console.log("  " + fc.label + " coverage: " + fc.percent + "% (" + fc.addressed.length + " of " + fc.expected + " areas addressed)");
+      for (const a of fc.addressed) console.log("    yes  " + (a.id + "            ").slice(0, 14) + a.title);
+      for (const m of fc.missing) console.log("    no   " + (m.id + "            ").slice(0, 14) + m.title);
+    }
     console.log("");
     console.log("  Naming a control records where it belongs. It is not evidence that the control is implemented.");
   }
   if (args.includes("--strict") && counts.high > 0) return 1;
+  return 0;
+}
+
+function cmdControls(args) {
+  const name = (args[0] || "").toLowerCase();
+  if (!catalogs[name]) {
+    console.error("hisn: no catalog for '" + (args[0] || "") + "'. Try one of: " + catalogNames.join(", "));
+    return 2;
+  }
+  const cat = catalogs[name];
+  console.log(cat.label);
+  console.log(cat.note);
+  console.log("");
+  for (const c of cat.controls) console.log("  " + (c.id + "              ").slice(0, 16) + c.title);
+  console.log("");
+  console.log("  A blueprint control addresses an entry when it starts with it, so Req 3.4 addresses Req 3.");
+  console.log("  This is a subset chosen for what a drawing can show, not the whole framework.");
   return 0;
 }
 
@@ -196,6 +222,7 @@ function main() {
   if (cmd === "card") return cmdCard(args);
   if (cmd === "check") return cmdCheck(args);
   if (cmd === "matrix") return cmdMatrix(args);
+  if (cmd === "controls") return cmdControls(args);
   if (cmd === "serve") return cmdServe(args);
   if (cmd === "version" || cmd === "--version" || cmd === "-v") { console.log("hisn " + VERSION); return 0; }
   if (cmd === "help" || cmd === "--help" || cmd === "-h" || !cmd) { usage(); return 0; }

@@ -82,6 +82,33 @@ dashed**, and that convention survives export.
 
 ![A draft with an uncontrolled flow drawn dashed](docs/review.png)
 
+## It knows what each framework expects
+
+Naming controls is only half the question. The other half is whether the design
+speaks to the areas the framework cares about at all. Hisn carries a catalog per
+framework and reports the areas a blueprint never mentions:
+
+```
+$ hisn check cde.hisn
+
+  PCI DSS coverage: 78% (7 of 9 areas addressed)
+    yes  Req 1         Network security controls between trusted and untrusted networks
+    yes  Req 3         Protection of stored account data
+    yes  Req 4         Strong cryptography for account data in transit
+    ...
+    no   Req 2         Secure configuration of system components
+    no   Req 11        Detection of intrusions and unexpected changes
+```
+
+The catalogs are deliberately coarse. They name the requirement family rather than
+a sub numbered control, because sub numbers move between versions of a framework
+and the useful signal from a drawing is not whether you wrote 3.4 or 3.5, it is
+whether the design says anything about protecting stored data. A control addresses
+an entry when it starts with it, so `Req 3.4` addresses `Req 3`.
+
+See what a framework expects with `hisn controls pci`. All eight reference
+blueprints address their whole catalog, so each one doubles as a worked example.
+
 ## Control coverage
 
 `hisn matrix` turns the blueprint into a table of what each named control covers,
@@ -95,6 +122,16 @@ $ hisn matrix cde.hisn
 | Req 1.3 | Segmentation firewall | web to fw |
 | Req 3.4 | Cardholder data store | fw to app, app to vault |
 | Req 3.5 | Key management HSM | app to hsm |
+```
+
+## Review blueprints in CI
+
+`--strict` exits non zero on a high finding, so a blueprint can gate a pull
+request. There is a ready workflow at
+[examples/ci/blueprint-review.yml](examples/ci/blueprint-review.yml):
+
+```
+npx github:SiteQ8/Hisn check cde.hisn --strict
 ```
 
 ## The language
@@ -170,6 +207,7 @@ npx github:SiteQ8/Hisn render phi.hisn -o phi.html
 npx github:SiteQ8/Hisn render phi.hisn -o phi-light.html --theme light
 npx github:SiteQ8/Hisn check phi.hisn --strict
 npx github:SiteQ8/Hisn matrix phi.hisn -o coverage.md
+npx github:SiteQ8/Hisn controls hipaa
 npx github:SiteQ8/Hisn card phi.hisn -o phi-card.svg
 npx github:SiteQ8/Hisn serve --open
 ```
@@ -189,6 +227,10 @@ Hisn draws and reviews reference architectures. It does not assess or certify on
   The rules are a small, opinionated set of structural checks, not a framework
   audit, and they cannot see a misconfiguration, prove segmentation, or read your
   running system.
+- Full framework coverage means the blueprint mentions each area in the catalog.
+  The catalogs are subsets chosen for what a drawing can show, so requirements
+  about policy, training, physical premises, and process are left out on purpose.
+  Reaching 100% says the picture is complete, not that the programme is.
 - Control references in the templates are illustrative. Confirm the exact control
   text against the framework itself.
 

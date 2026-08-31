@@ -20,13 +20,14 @@ zone mgmt "Management" trust=management
 
 component cardholder "Cardholder" zone=internet type=user
 component waf "Web application firewall" zone=dmz type=waf controls="Req 6.6"
-component web "Payment page" zone=dmz type=server controls="Req 4.1"
+component web "Payment page" zone=dmz type=server controls="Req 4.1, 2.2"
 component fw "Segmentation firewall" zone=cde type=firewall controls="Req 1.2, 1.3"
 component app "Payment application" zone=cde type=app controls="Req 6.2"
 component vault "Cardholder data store" zone=cde type=db controls="Req 3.4"
 component hsm "Key management HSM" zone=cde type=hsm controls="Req 3.5, 3.6"
 component siem "Logging and monitoring" zone=mgmt type=siem controls="Req 10.2, 10.6"
 component bastion "Jump host" zone=mgmt type=gateway controls="Req 8.3"
+component ids "Intrusion detection" zone=mgmt type=ids controls="Req 11.5"
 component staff "Administrator" zone=corp type=user
 
 flow cardholder -> waf "HTTPS" data=chd controls="Req 4.1"
@@ -37,7 +38,8 @@ flow app -> vault "store token" data=chd controls="Req 3.4"
 flow app -> hsm "encrypt" data=secret controls="Req 3.5"
 flow app -> siem "audit log" data=internal controls="Req 10.2"
 flow staff -> bastion "MFA" data=secret controls="Req 8.3"
-flow bastion -> app "administer" data=internal controls="Req 7.1"`,
+flow bastion -> app "administer" data=internal controls="Req 7.1"
+flow ids -> fw "inspect traffic" data=internal controls="Req 11.5"`,
 
   swift: `title SWIFT customer security programme secure zone
 framework swift
@@ -117,7 +119,7 @@ flow patient -> portal "HTTPS" data=pii controls="164.312(e)(1)"
 flow portal -> portalapp "filtered" data=pii controls="164.312(e)(1)"
 flow portalapp -> fw "into the ePHI zone" data=pii controls="164.312(a)(1)"
 flow fw -> ehr "record request" data=pii controls="164.312(a)(1)"
-flow ehr -> ephidb "read and write ePHI" data=pii controls="164.312(a)(2)(iv)"
+flow ehr -> ephidb "read and write ePHI" data=pii controls="164.312(a)(2)(iv), 164.312(c)(1)"
 flow ephidb -> backup "encrypted backup" data=pii controls="164.308(a)(7)(ii)(A)"
 flow ehr -> audit "activity log" data=internal controls="164.312(b)"
 flow clinician -> vpn "authenticate" data=internal controls="164.312(d)"
@@ -135,7 +137,7 @@ zone governance "Governance" trust=secure
 component subject "Data subject" zone=public type=user
 component consent "Consent capture" zone=edge type=app controls="Art. 7"
 component api "Intake API" zone=edge type=api controls="Art. 32"
-component svc "Processing service" zone=processing type=app controls="Art. 25"
+component svc "Processing service" zone=processing type=app controls="Art. 25, 5"
 component erasure "Erasure service" zone=processing type=service controls="Art. 17"
 component processor "Sub processor" zone=processing type=cloud controls="Art. 28"
 component pdb "Personal data store" zone=store type=db controls="Art. 32"
@@ -193,7 +195,7 @@ zone vault "Restricted information" trust=secure
 zone soc "Security operations" trust=secure
 
 component external "External party" zone=internet type=user
-component fw "Perimeter firewall" zone=perimeter type=firewall controls="A.8.20"
+component fw "Perimeter firewall" zone=perimeter type=firewall controls="A.8.20, A.8.22"
 component vpn "Remote access gateway" zone=perimeter type=gateway controls="A.8.21"
 component staff "Employee" zone=corporate type=user
 component fileshare "Corporate file share" zone=corporate type=store controls="A.5.15"
@@ -226,9 +228,9 @@ zone safety "Safety instrumented" trust=secure
 
 component erp "Business systems" zone=enterprise type=server controls="SR 5.2"
 component fw "Conduit firewall" zone=idmz type=firewall controls="SR 5.2"
-component mirror "Historian mirror" zone=idmz type=store controls="SR 5.2"
+component mirror "Historian mirror" zone=idmz type=store controls="SR 5.2, 7.3"
 component eng "Engineer" zone=operations type=user
-component hmi "Operator HMI" zone=operations type=app controls="SR 1.1"
+component hmi "Operator HMI" zone=operations type=app controls="SR 1.1, 2.1"
 component historian "Process historian" zone=operations type=store controls="SR 6.1"
 component siem "Process monitoring" zone=operations type=siem controls="SR 6.2"
 component plc "Programmable controller" zone=control type=server controls="SR 3.1"

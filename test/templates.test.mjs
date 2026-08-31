@@ -6,7 +6,7 @@ import { templates, templateNames, templateLabels } from "../docs/app/templates.
 test("the eight framework blueprints exist", () => {
   assert.deepEqual(
     templateNames.slice().sort(),
-    ["gdpr", "hipaa", "iec62443", "iso27001", "pci", "soc2", "swift", "zerotrust"]
+    ["cis", "gdpr", "hipaa", "iec62443", "iso27001", "nca", "nis2", "pci", "soc2", "swift", "zerotrust"]
   );
 });
 
@@ -28,4 +28,7 @@ test("blueprints carry their framework control references", () => {
   assert.match(templates.soc2, /CC6\./);
   assert.match(templates.iso27001, /A\.8\./);
   assert.match(templates.iec62443, /SR /);
+  assert.match(templates.nca, /ECC /);
+  assert.match(templates.nis2, /Art\. 21/);
+  assert.match(templates.cis, /CIS /);
 });

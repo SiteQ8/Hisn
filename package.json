@@ -1,7 +1,7 @@
 {
   "name": "hisn",
-  "version": "0.4.0",
-  "description": "Security and compliance blueprints as code. Draw a trust zoned reference architecture, review it for control gaps and framework coverage, and diff two revisions to catch a change that weakens the design. Eight frameworks. Zero dependencies.",
+  "version": "0.5.0",
+  "description": "Security and compliance blueprints as code. Draw a trust zoned reference architecture, review it for control gaps and framework coverage, and diff two revisions to catch a change that weakens the design. Eleven frameworks, or bring your own control set. Zero dependencies.",
   "type": "module",
   "bin": {
     "hisn": "bin/hisn.mjs"
@@ -24,6 +24,9 @@
     "soc2",
     "iso27001",
     "iec62443",
+    "nis2",
+    "cis-controls",
+    "nca-ecc",
     "threat-model",
     "blueprint",
     "zero-dependency"

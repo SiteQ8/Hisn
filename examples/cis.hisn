@@ -1,0 +1,31 @@
+title CIS controls enterprise environment
+framework cis
+
+zone internet "Internet" trust=untrusted
+zone edge "Edge" trust=dmz
+zone enterprise "Enterprise network" trust=restricted
+zone servers "Server estate" trust=secure
+zone soc "Security operations" trust=secure
+
+component user "Remote user" zone=internet type=user
+component fw "Network firewall" zone=edge type=firewall controls="CIS 12.2"
+component vpn "Remote access gateway" zone=edge type=gateway controls="CIS 6.4"
+component workstation "Workstation" zone=enterprise type=server controls="CIS 4.1"
+component directory "Account management" zone=servers type=service controls="CIS 5.3"
+component app "Business application" zone=servers type=app controls="CIS 16.1"
+component db "Data store" zone=servers type=db controls="CIS 3.11"
+component keys "Key management" zone=servers type=hsm controls="CIS 3.11"
+component backup "Recovery store" zone=servers type=store controls="CIS 11.2"
+component logs "Audit log management" zone=soc type=siem controls="CIS 8.2"
+component nids "Network monitoring" zone=soc type=ids controls="CIS 13.3"
+
+flow user -> vpn "remote access" data=secret controls="CIS 6.4"
+flow vpn -> workstation "session" data=internal controls="CIS 4.1"
+flow fw -> vpn "filtered" data=internal controls="CIS 12.2"
+flow workstation -> app "use" data=internal controls="CIS 6.4"
+flow directory -> app "authenticate" data=secret controls="CIS 5.3"
+flow app -> db "read and write" data=pii controls="CIS 3.11"
+flow app -> keys "encryption keys" data=secret controls="CIS 3.11"
+flow db -> backup "recovery copy" data=pii controls="CIS 11.2"
+flow app -> logs "audit records" data=internal controls="CIS 8.2"
+flow nids -> fw "monitor traffic" data=internal controls="CIS 13.3"

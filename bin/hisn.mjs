@@ -7,12 +7,12 @@ import { fileURLToPath } from "node:url";
 import { dirname, join, extname, resolve, basename } from "node:path";
 import { createServer } from "node:http";
 
-import { build, buildDiff, validate, templates, templateNames, templateLabels, matrixMarkdown, matrixCSV, catalogs, catalogNames } from "../docs/app/engine.mjs";
+import { build, buildDiff, validate, templates, templateNames, templateLabels, matrixMarkdown, matrixCSV, catalogs, catalogNames, readCatalog } from "../docs/app/engine.mjs";
 import { toHTML, toCard } from "./html.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, "..");
-const VERSION = "0.4.0";
+const VERSION = "0.5.0";
 
 function usage() {
   process.stdout.write(
@@ -22,9 +22,9 @@ Diagram as code for security and compliance reference architectures.
 Usage:
   hisn render <source> [-o out.html] [--theme dark|light]   build a blueprint
   hisn template <name> [-o file.hisn]                       print a reference blueprint
-  hisn check <source> [--json] [--strict]                   review a blueprint for gaps
+  hisn check <source> [--json] [--strict] [--catalog f.json] review a blueprint for gaps
   hisn matrix <source> [-o table.md] [--csv]                what each named control covers
-  hisn controls <framework>                                 what a framework expects a design to show
+  hisn controls <framework> [--json]                        what a framework expects a design to show
   hisn diff <before> <after> [-o out.html] [--strict]       what changed, and whether it got weaker
   hisn card <source> [-o card.svg] [--theme dark|light]     a 1200 by 630 share image
   hisn serve [--port 8400] [--open]                         run the browser demo
@@ -110,8 +110,15 @@ function readSource(src) {
 function cmdCheck(args) {
   const text = readSource(args[0]);
   if (text === null) return 2;
+  let catalog = null;
+  const catPath = argValue(args, "--catalog");
+  if (catPath) {
+    if (!existsSync(catPath)) { console.error("hisn: no such catalog file: " + catPath); return 2; }
+    try { catalog = readCatalog(readFileSync(catPath, "utf8")); }
+    catch (e) { console.error("hisn: could not read the catalog: " + e.message); return 2; }
+  }
   let built;
-  try { built = build(text); }
+  try { built = build(text, "dark", catalog ? { catalog } : undefined); }
   catch (e) { console.error("hisn: could not read the source: " + e.message); return 2; }
 
   const { findings, counts, coverage } = built;
@@ -218,6 +225,10 @@ function cmdControls(args) {
     return 2;
   }
   const cat = catalogs[name];
+  if (args.includes("--json")) {
+    console.log(JSON.stringify({ label: cat.label, note: cat.note, controls: cat.controls }, null, 2));
+    return 0;
+  }
   console.log(cat.label);
   console.log(cat.note);
   console.log("");

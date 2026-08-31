@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.5.0
+
+- Three more frameworks: NCA essential cybersecurity controls, NIS2, and the CIS
+  Controls, bringing the total to eleven. All eleven reference blueprints pass
+  their own structural review and address their whole control catalog.
+- Checking against a control set you supply, with `--catalog file.json`, so an
+  organisation whose framework is not built in, or which has its own internal
+  baseline, gets the same coverage report. A bad catalog explains what is wrong
+  rather than failing later.
+- `hisn controls <framework> --json` prints a built in catalog in that shape, to
+  start a custom one from. There is also a starter at
+  examples/catalogs/internal-baseline.json.
+- Building the three new blueprints put the review to work: it caught a DMZ tier
+  reaching a data centre application directly in two of them, and secret material
+  with no key management in the third, all fixed before release.
+- 83 tests.
+
 ## 0.4.0
 
 Hisn now reviews an architecture change, not just an architecture.

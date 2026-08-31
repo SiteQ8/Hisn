@@ -1,0 +1,33 @@
+title NIS2 essential entity network and information systems
+framework nis2
+
+zone internet "Internet" trust=untrusted
+zone edge "Edge" trust=dmz
+zone corporate "Corporate network" trust=restricted
+zone core "Core services" trust=secure
+zone soc "Security operations" trust=secure
+
+component user "Service user" zone=internet type=user
+component supplier "Supplier service" zone=internet type=cloud controls="Art. 21(2)(d)"
+component gw "Access gateway" zone=edge type=gateway controls="Art. 21(2)(j)"
+component mfa "Authentication service" zone=edge type=service controls="Art. 21(2)(j)"
+component staff "Operator" zone=corporate type=user
+component seg "Core segmentation" zone=core type=firewall controls="Art. 21(2)(i)"
+component app "Essential service" zone=core type=app controls="Art. 21(2)(e)"
+component db "Service data store" zone=core type=db controls="Art. 21(2)(i)"
+component vault "Key management" zone=core type=hsm controls="Art. 21(2)(h)"
+component backup "Backup and recovery" zone=core type=store controls="Art. 21(2)(c)"
+component soc "Incident detection" zone=soc type=siem controls="Art. 21(2)(b)"
+component report "Authority reporting" zone=soc type=service controls="Art. 23"
+
+flow user -> gw "service request" data=pii controls="Art. 21(2)(j)"
+flow gw -> mfa "verify" data=secret controls="Art. 21(2)(j)"
+flow gw -> seg "into core services" data=pii controls="Art. 21(2)(i)"
+flow seg -> app "authorized session" data=pii controls="Art. 21(2)(e)"
+flow staff -> gw "operator access" data=secret controls="Art. 21(2)(j)"
+flow app -> db "read and write" data=pii controls="Art. 21(2)(i)"
+flow app -> vault "encrypt" data=secret controls="Art. 21(2)(h)"
+flow db -> backup "recovery point" data=pii controls="Art. 21(2)(c)"
+flow supplier -> gw "supplier integration" data=internal controls="Art. 21(2)(d)"
+flow app -> soc "security events" data=internal controls="Art. 21(2)(b)"
+flow soc -> report "notify authority" data=internal controls="Art. 23"

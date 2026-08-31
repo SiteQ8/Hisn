@@ -1,0 +1,14 @@
+{
+  "label": "Internal baseline",
+  "note": "The control set every production design in this organisation must speak to. Replace these with your own.",
+  "controls": [
+    { "id": "SEC-1", "title": "Segmentation between tiers" },
+    { "id": "SEC-2", "title": "Encryption of data at rest" },
+    { "id": "SEC-3", "title": "Encryption of data in transit" },
+    { "id": "SEC-4", "title": "Centralised audit logging" },
+    { "id": "SEC-5", "title": "Multi factor administrative access" },
+    { "id": "SEC-6", "title": "Key and secret management" },
+    { "id": "SEC-7", "title": "Backup and recovery" },
+    { "id": "SEC-8", "title": "Third party and supplier access" }
+  ]
+}

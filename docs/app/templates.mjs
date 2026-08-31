@@ -246,6 +246,106 @@ flow hmi -> plc "commands" data=internal controls="SR 3.1"
 flow plc -> io "control loop" data=internal controls="SR 3.1"
 flow plc -> sis "safety interlock" data=internal controls="SR 5.1"
 flow historian -> siem "process events" data=internal controls="SR 6.2"`,
+
+  nca: `title NCA essential cybersecurity controls
+framework nca
+
+zone internet "Internet" trust=untrusted
+zone dmz "DMZ" trust=dmz
+zone corporate "Corporate network" trust=restricted
+zone datacenter "Data centre" trust=secure
+zone soc "Security operations" trust=secure
+
+component external "External user" zone=internet type=user
+component fw "Perimeter firewall" zone=dmz type=firewall controls="ECC 2-7-3"
+component waf "Web application firewall" zone=dmz type=waf controls="ECC 2-6-2"
+component staff "Employee" zone=corporate type=user
+component seg "Internal segmentation firewall" zone=datacenter type=firewall controls="ECC 2-7-1"
+component iam "Identity and access management" zone=datacenter type=service controls="ECC 2-5-3"
+component jump "Privileged access host" zone=datacenter type=gateway controls="ECC 2-5-4"
+component app "Business application" zone=datacenter type=app controls="ECC 2-6-1"
+component data "Sensitive data store" zone=datacenter type=db controls="ECC 2-9-3"
+component keys "Cryptographic key management" zone=datacenter type=hsm controls="ECC 2-10-2"
+component backup "Backup repository" zone=datacenter type=store controls="ECC 2-11-3"
+component siem "Event logs and monitoring" zone=soc type=siem controls="ECC 2-14-3"
+
+flow external -> fw "inbound" data=internal controls="ECC 2-7-3"
+flow fw -> waf "filtered" data=internal controls="ECC 2-6-2"
+flow waf -> seg "into the data centre" data=pii controls="ECC 2-7-1"
+flow seg -> app "application traffic" data=pii controls="ECC 2-6-1"
+flow staff -> jump "privileged access" data=secret controls="ECC 2-5-4"
+flow jump -> app "administer" data=internal controls="ECC 2-5-3"
+flow iam -> app "authenticate" data=secret controls="ECC 2-5-3"
+flow app -> data "read and write" data=pii controls="ECC 2-9-3"
+flow app -> keys "encrypt" data=secret controls="ECC 2-10-2"
+flow data -> backup "scheduled backup" data=pii controls="ECC 2-11-3"
+flow app -> siem "event logs" data=internal controls="ECC 2-14-3"`,
+
+  nis2: `title NIS2 essential entity network and information systems
+framework nis2
+
+zone internet "Internet" trust=untrusted
+zone edge "Edge" trust=dmz
+zone corporate "Corporate network" trust=restricted
+zone core "Core services" trust=secure
+zone soc "Security operations" trust=secure
+
+component user "Service user" zone=internet type=user
+component supplier "Supplier service" zone=internet type=cloud controls="Art. 21(2)(d)"
+component gw "Access gateway" zone=edge type=gateway controls="Art. 21(2)(j)"
+component mfa "Authentication service" zone=edge type=service controls="Art. 21(2)(j)"
+component staff "Operator" zone=corporate type=user
+component seg "Core segmentation" zone=core type=firewall controls="Art. 21(2)(i)"
+component app "Essential service" zone=core type=app controls="Art. 21(2)(e)"
+component db "Service data store" zone=core type=db controls="Art. 21(2)(i)"
+component vault "Key management" zone=core type=hsm controls="Art. 21(2)(h)"
+component backup "Backup and recovery" zone=core type=store controls="Art. 21(2)(c)"
+component soc "Incident detection" zone=soc type=siem controls="Art. 21(2)(b)"
+component report "Authority reporting" zone=soc type=service controls="Art. 23"
+
+flow user -> gw "service request" data=pii controls="Art. 21(2)(j)"
+flow gw -> mfa "verify" data=secret controls="Art. 21(2)(j)"
+flow gw -> seg "into core services" data=pii controls="Art. 21(2)(i)"
+flow seg -> app "authorized session" data=pii controls="Art. 21(2)(e)"
+flow staff -> gw "operator access" data=secret controls="Art. 21(2)(j)"
+flow app -> db "read and write" data=pii controls="Art. 21(2)(i)"
+flow app -> vault "encrypt" data=secret controls="Art. 21(2)(h)"
+flow db -> backup "recovery point" data=pii controls="Art. 21(2)(c)"
+flow supplier -> gw "supplier integration" data=internal controls="Art. 21(2)(d)"
+flow app -> soc "security events" data=internal controls="Art. 21(2)(b)"
+flow soc -> report "notify authority" data=internal controls="Art. 23"`,
+
+  cis: `title CIS controls enterprise environment
+framework cis
+
+zone internet "Internet" trust=untrusted
+zone edge "Edge" trust=dmz
+zone enterprise "Enterprise network" trust=restricted
+zone servers "Server estate" trust=secure
+zone soc "Security operations" trust=secure
+
+component user "Remote user" zone=internet type=user
+component fw "Network firewall" zone=edge type=firewall controls="CIS 12.2"
+component vpn "Remote access gateway" zone=edge type=gateway controls="CIS 6.4"
+component workstation "Workstation" zone=enterprise type=server controls="CIS 4.1"
+component directory "Account management" zone=servers type=service controls="CIS 5.3"
+component app "Business application" zone=servers type=app controls="CIS 16.1"
+component db "Data store" zone=servers type=db controls="CIS 3.11"
+component keys "Key management" zone=servers type=hsm controls="CIS 3.11"
+component backup "Recovery store" zone=servers type=store controls="CIS 11.2"
+component logs "Audit log management" zone=soc type=siem controls="CIS 8.2"
+component nids "Network monitoring" zone=soc type=ids controls="CIS 13.3"
+
+flow user -> vpn "remote access" data=secret controls="CIS 6.4"
+flow vpn -> workstation "session" data=internal controls="CIS 4.1"
+flow fw -> vpn "filtered" data=internal controls="CIS 12.2"
+flow workstation -> app "use" data=internal controls="CIS 6.4"
+flow directory -> app "authenticate" data=secret controls="CIS 5.3"
+flow app -> db "read and write" data=pii controls="CIS 3.11"
+flow app -> keys "encryption keys" data=secret controls="CIS 3.11"
+flow db -> backup "recovery copy" data=pii controls="CIS 11.2"
+flow app -> logs "audit records" data=internal controls="CIS 8.2"
+flow nids -> fw "monitor traffic" data=internal controls="CIS 13.3"`,
 };
 
 export const templateNames = Object.keys(templates);
@@ -260,4 +360,7 @@ export const templateLabels = {
   soc2: "SOC 2",
   iso27001: "ISO 27001",
   iec62443: "IEC 62443",
+  nca: "NCA ECC",
+  nis2: "NIS2",
+  cis: "CIS Controls",
 };

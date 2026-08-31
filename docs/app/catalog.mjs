@@ -116,6 +116,48 @@ export const catalogs = {
       { id: "SR 7", title: "Resource availability" },
     ],
   },
+  nca: {
+    label: "NCA ECC",
+    note: "The essential cybersecurity controls subdomains a network diagram can show.",
+    controls: [
+      { id: "ECC 2-5", title: "Identity and access management" },
+      { id: "ECC 2-6", title: "Information system and processing facilities protection" },
+      { id: "ECC 2-7", title: "Networks security management" },
+      { id: "ECC 2-9", title: "Data and information protection" },
+      { id: "ECC 2-10", title: "Cryptography" },
+      { id: "ECC 2-11", title: "Backup and recovery management" },
+      { id: "ECC 2-14", title: "Cybersecurity event logs and monitoring management" },
+    ],
+  },
+  nis2: {
+    label: "NIS2",
+    note: "The risk management measures of Article 21 that a design can show, and the reporting duty of Article 23.",
+    controls: [
+      { id: "Art. 21(2)(b)", title: "Incident handling" },
+      { id: "Art. 21(2)(c)", title: "Business continuity and backup management" },
+      { id: "Art. 21(2)(d)", title: "Supply chain security" },
+      { id: "Art. 21(2)(e)", title: "Security in acquisition, development and maintenance" },
+      { id: "Art. 21(2)(h)", title: "Cryptography and encryption" },
+      { id: "Art. 21(2)(i)", title: "Access control and asset management" },
+      { id: "Art. 21(2)(j)", title: "Multi factor authentication and secured communications" },
+      { id: "Art. 23", title: "Reporting significant incidents to the authority" },
+    ],
+  },
+  cis: {
+    label: "CIS Controls",
+    note: "The CIS critical security controls an enterprise network diagram can show.",
+    controls: [
+      { id: "CIS 3", title: "Data protection" },
+      { id: "CIS 4", title: "Secure configuration of assets and software" },
+      { id: "CIS 5", title: "Account management" },
+      { id: "CIS 6", title: "Access control management" },
+      { id: "CIS 8", title: "Audit log management" },
+      { id: "CIS 11", title: "Data recovery" },
+      { id: "CIS 12", title: "Network infrastructure management" },
+      { id: "CIS 13", title: "Network monitoring and defence" },
+      { id: "CIS 16", title: "Application software security" },
+    ],
+  },
 };
 
 export const catalogNames = Object.keys(catalogs);
@@ -134,9 +176,30 @@ export function addresses(control, catalogId) {
   return next === "." || next === " " || next === "-" || next === "(";
 }
 
-// Which catalog entries a blueprint speaks to, and which it never mentions.
-export function frameworkCoverage(ir) {
-  const cat = catalogs[String(ir.framework || "").toLowerCase()];
+// Read a catalog supplied by the caller, so a team whose framework is not built in
+// can declare its own control set. Throws a readable message on a bad shape rather
+// than failing later with something cryptic.
+export function readCatalog(value) {
+  const obj = typeof value === "string" ? JSON.parse(value) : value;
+  if (!obj || typeof obj !== "object") throw new Error("a catalog must be an object");
+  if (!Array.isArray(obj.controls) || !obj.controls.length) throw new Error("a catalog needs a controls array with at least one entry");
+  const controls = obj.controls.map((c, i) => {
+    if (!c || typeof c !== "object") throw new Error(`control ${i + 1} must be an object with an id and a title`);
+    if (!c.id) throw new Error(`control ${i + 1} needs an id`);
+    return { id: String(c.id), title: String(c.title || c.id) };
+  });
+  const seen = new Set();
+  for (const c of controls) {
+    if (seen.has(c.id)) throw new Error(`control '${c.id}' appears twice`);
+    seen.add(c.id);
+  }
+  return { label: String(obj.label || "Custom"), note: String(obj.note || "A control set supplied for this review."), controls };
+}
+
+// Which catalog entries a blueprint speaks to, and which it never mentions. A
+// catalog passed in wins over the one the framework directive would select.
+export function frameworkCoverage(ir, custom) {
+  const cat = custom ? readCatalog(custom) : catalogs[String(ir.framework || "").toLowerCase()];
   if (!cat) return null;
   const named = [];
   ir.components.forEach((c) => c.controls.forEach((k) => named.push(k)));
@@ -149,7 +212,7 @@ export function frameworkCoverage(ir) {
     else missing.push(entry);
   }
   return {
-    id: String(ir.framework).toLowerCase(),
+    id: custom ? "custom" : String(ir.framework).toLowerCase(),
     label: cat.label,
     note: cat.note,
     expected: cat.controls.length,

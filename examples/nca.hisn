@@ -1,0 +1,33 @@
+title NCA essential cybersecurity controls
+framework nca
+
+zone internet "Internet" trust=untrusted
+zone dmz "DMZ" trust=dmz
+zone corporate "Corporate network" trust=restricted
+zone datacenter "Data centre" trust=secure
+zone soc "Security operations" trust=secure
+
+component external "External user" zone=internet type=user
+component fw "Perimeter firewall" zone=dmz type=firewall controls="ECC 2-7-3"
+component waf "Web application firewall" zone=dmz type=waf controls="ECC 2-6-2"
+component staff "Employee" zone=corporate type=user
+component seg "Internal segmentation firewall" zone=datacenter type=firewall controls="ECC 2-7-1"
+component iam "Identity and access management" zone=datacenter type=service controls="ECC 2-5-3"
+component jump "Privileged access host" zone=datacenter type=gateway controls="ECC 2-5-4"
+component app "Business application" zone=datacenter type=app controls="ECC 2-6-1"
+component data "Sensitive data store" zone=datacenter type=db controls="ECC 2-9-3"
+component keys "Cryptographic key management" zone=datacenter type=hsm controls="ECC 2-10-2"
+component backup "Backup repository" zone=datacenter type=store controls="ECC 2-11-3"
+component siem "Event logs and monitoring" zone=soc type=siem controls="ECC 2-14-3"
+
+flow external -> fw "inbound" data=internal controls="ECC 2-7-3"
+flow fw -> waf "filtered" data=internal controls="ECC 2-6-2"
+flow waf -> seg "into the data centre" data=pii controls="ECC 2-7-1"
+flow seg -> app "application traffic" data=pii controls="ECC 2-6-1"
+flow staff -> jump "privileged access" data=secret controls="ECC 2-5-4"
+flow jump -> app "administer" data=internal controls="ECC 2-5-3"
+flow iam -> app "authenticate" data=secret controls="ECC 2-5-3"
+flow app -> data "read and write" data=pii controls="ECC 2-9-3"
+flow app -> keys "encrypt" data=secret controls="ECC 2-10-2"
+flow data -> backup "scheduled backup" data=pii controls="ECC 2-11-3"
+flow app -> siem "event logs" data=internal controls="ECC 2-14-3"

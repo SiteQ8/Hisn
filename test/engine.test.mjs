@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { build, VERSION, templates, templateNames } from "../docs/app/engine.mjs";
 
 test("version is 0.2.0", () => {
-  assert.equal(VERSION, "0.4.0");
+  assert.equal(VERSION, "0.5.0");
 });
 
 test("build returns ir, model, svg, and a review", () => {

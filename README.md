@@ -14,7 +14,7 @@ server, no build step.
 
 ![A PCI DSS cardholder data environment drawn by Hisn](docs/pci.png)
 
-## Eight frameworks, ready to start from
+## Eleven frameworks, ready to start from
 
 | | |
 | --- | --- |
@@ -26,14 +26,17 @@ server, no build step.
 | `soc2` | SOC 2 production environment, with trust services criteria |
 | `iso27001` | ISO 27001 information security zones, with Annex A references |
 | `iec62443` | IEC 62443 zones and conduits for industrial control systems |
+| `nca` | NCA essential cybersecurity controls, with ECC subdomain references |
+| `nis2` | NIS2 essential entity systems, with Article 21 and 23 references |
+| `cis` | CIS Controls enterprise environment |
 
 ```
 npx github:SiteQ8/Hisn template pci > cde.hisn
 npx github:SiteQ8/Hisn render cde.hisn -o cde.html
 ```
 
-Each one is written to pass its own review, so it doubles as a worked example of a
-clean design.
+Each one is written to pass its own review and to address its whole control
+catalog, so it doubles as a worked example of a clean design.
 
 ## It reviews the blueprint, not just draws it
 
@@ -106,8 +109,9 @@ and the useful signal from a drawing is not whether you wrote 3.4 or 3.5, it is
 whether the design says anything about protecting stored data. A control addresses
 an entry when it starts with it, so `Req 3.4` addresses `Req 3`.
 
-See what a framework expects with `hisn controls pci`. All eight reference
-blueprints address their whole catalog, so each one doubles as a worked example.
+See what a framework expects with `hisn controls pci`. All eleven reference
+blueprints address their whole catalog and pass structural review, so each one
+doubles as a worked example of both.
 
 ## Control coverage
 
@@ -123,6 +127,30 @@ $ hisn matrix cde.hisn
 | Req 3.4 | Cardholder data store | fw to app, app to vault |
 | Req 3.5 | Key management HSM | app to hsm |
 ```
+
+### Your own control set
+
+If your framework is not built in, or your organisation has its own baseline,
+declare it in a JSON file and check against that instead:
+
+```
+hisn check design.hisn --catalog internal-baseline.json
+```
+
+```json
+{
+  "label": "Internal baseline",
+  "controls": [
+    { "id": "SEC-1", "title": "Segmentation between tiers" },
+    { "id": "SEC-2", "title": "Encryption of data at rest" }
+  ]
+}
+```
+
+There is a starter at
+[examples/catalogs/internal-baseline.json](examples/catalogs/internal-baseline.json),
+and `hisn controls soc2 --json` prints a built in catalog in the same shape if you
+would rather begin from one of those.
 
 ## Change review
 
@@ -248,6 +276,7 @@ npx github:SiteQ8/Hisn check phi.hisn --strict
 npx github:SiteQ8/Hisn matrix phi.hisn -o coverage.md
 npx github:SiteQ8/Hisn controls hipaa
 npx github:SiteQ8/Hisn diff old.hisn phi.hisn -o change.html
+npx github:SiteQ8/Hisn check phi.hisn --catalog internal-baseline.json
 npx github:SiteQ8/Hisn card phi.hisn -o phi-card.svg
 npx github:SiteQ8/Hisn serve --open
 ```

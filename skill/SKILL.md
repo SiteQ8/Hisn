@@ -1,6 +1,6 @@
 ---
 name: hisn
-description: Use this skill when someone wants a security or compliance architecture drawn or reviewed. Hisn turns a short text source into a blueprint of trust zones, the components inside them, and the data flowing between them, colored by data classification and annotated with the controls each element maps to, and it reviews that blueprint for gaps such as sensitive data moving with no named control or a flow that skips a trust tier. It has reference blueprints for PCI DSS, SWIFT CSP, Zero Trust, HIPAA, GDPR, SOC 2, ISO 27001, and IEC 62443. Trigger this for requests like "draw our cardholder data environment", "what would a zero trust architecture look like", "diagram where PHI flows", "review this architecture for control gaps", or "which controls cover which parts of this design".
+description: Use this skill when someone wants a security or compliance architecture drawn or reviewed. Hisn turns a short text source into a blueprint of trust zones, the components inside them, and the data flowing between them, colored by data classification and annotated with the controls each element maps to, and it reviews that blueprint for gaps such as sensitive data moving with no named control or a flow that skips a trust tier. It has reference blueprints for PCI DSS, SWIFT CSP, Zero Trust, HIPAA, GDPR, SOC 2, ISO 27001, IEC 62443, NCA ECC, NIS2, and CIS Controls, and it can check against a control set you supply. Trigger this for requests like "draw our cardholder data environment", "what would a zero trust architecture look like", "diagram where PHI flows", "review this architecture for control gaps", or "which controls cover which parts of this design".
 ---
 
 # Hisn: security blueprints as code
@@ -23,7 +23,7 @@ each step.
    ```
 
    The names are `pci`, `swift`, `zerotrust`, `hipaa`, `gdpr`, `soc2`,
-   `iso27001`, and `iec62443`. Otherwise write the source yourself using the
+   `iso27001`, `iec62443`, `nca`, `nis2`, and `cis`. Otherwise write the source yourself using the
    language below.
 2. Edit it for the environment being described.
 3. Build the interactive blueprint:
@@ -136,6 +136,16 @@ the framework catalog the blueprint speaks to and which it never mentions. A
 control addresses an entry when it starts with it, so `Req 3.4` addresses `Req 3`.
 Coverage is a checklist, not a finding, and reaching 100% means the picture
 mentions every area a drawing can show, not that the programme is compliant.
+
+When the person has their own control set, or their framework is not built in,
+check against a catalog file instead:
+
+```
+npx github:SiteQ8/Hisn check design.hisn --catalog internal-baseline.json
+```
+
+The file is JSON with a label and a list of controls, each with an id and a title.
+`hisn controls soc2 --json` prints a built in catalog in that shape to start from.
 
 ## Tips
 

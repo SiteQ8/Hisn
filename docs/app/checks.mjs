@@ -22,7 +22,7 @@ function label(map, id) {
   return map[id] ? map[id].label : id;
 }
 
-export function check(ir) {
+export function check(ir, options) {
   const findings = [];
   const zoneById = {};
   ir.zones.forEach((z) => (zoneById[z.id] = z));
@@ -220,7 +220,7 @@ export function check(ir) {
       sensitiveFlows: { total: sensitiveFlows.length, controlled: sensitiveFlows.filter(controlled).length },
       controls: [...controls].sort(),
       named: elements ? Math.round((controlledElements / elements) * 100) : 0,
-      framework: frameworkCoverage(ir),
+      framework: frameworkCoverage(ir, options && options.catalog),
     },
   };
 }

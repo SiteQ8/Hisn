@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { parse } from "../docs/app/parse.mjs";
-import { catalogs, catalogNames, addresses, frameworkCoverage } from "../docs/app/catalog.mjs";
+import { catalogs, catalogNames, addresses, frameworkCoverage, readCatalog } from "../docs/app/catalog.mjs";
 import { templates, templateNames } from "../docs/app/templates.mjs";
 import { check } from "../docs/app/checks.mjs";
 
@@ -67,4 +67,41 @@ test("every reference blueprint addresses its whole catalog", () => {
     assert.equal(fc.missing.length, 0,
       name + " leaves these unaddressed: " + fc.missing.map((m) => m.id).join(", "));
   }
+});
+
+test("a custom catalog is read and validated", () => {
+  const cat = readCatalog('{"label":"Team","controls":[{"id":"SEC-1","title":"Segmentation"}]}');
+  assert.equal(cat.label, "Team");
+  assert.equal(cat.controls[0].id, "SEC-1");
+  assert.ok(cat.note, "a default note is supplied");
+});
+
+test("a control with no title falls back to its id", () => {
+  assert.equal(readCatalog({ controls: [{ id: "SEC-1" }] }).controls[0].title, "SEC-1");
+});
+
+test("a bad catalog explains what is wrong", () => {
+  assert.throws(() => readCatalog("{}"), /controls array/);
+  assert.throws(() => readCatalog({ controls: [] }), /controls array/);
+  assert.throws(() => readCatalog({ controls: [{ title: "no id" }] }), /needs an id/);
+  assert.throws(() => readCatalog({ controls: [{ id: "A" }, { id: "A" }] }), /appears twice/);
+});
+
+test("a custom catalog is used instead of the framework one", () => {
+  const ir = parse('framework pci\ncomponent a "A" controls="SEC-1"\nflow a -> a controls="Req 3.4"');
+  const fc = frameworkCoverage(ir, { label: "Team", controls: [{ id: "SEC-1", title: "One" }, { id: "SEC-2", title: "Two" }] });
+  assert.equal(fc.label, "Team");
+  assert.equal(fc.id, "custom");
+  assert.equal(fc.addressed.length, 1);
+  assert.equal(fc.missing[0].id, "SEC-2");
+});
+
+test("check accepts a custom catalog", () => {
+  const r = check(parse('component a "A" controls="SEC-1"\nflow a -> a'), { catalog: { controls: [{ id: "SEC-1", title: "One" }] } });
+  assert.equal(r.coverage.framework.percent, 100);
+});
+
+test("a blueprint with no framework still gets coverage from a custom catalog", () => {
+  const r = check(parse('component a "A" controls="X"\nflow a -> a'), { catalog: { controls: [{ id: "Y", title: "Why" }] } });
+  assert.equal(r.coverage.framework.missing.length, 1);
 });

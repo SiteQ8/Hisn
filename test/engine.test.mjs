@@ -1,9 +1,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import { build, VERSION, templates, templateNames } from "../docs/app/engine.mjs";
 
-test("version is 0.2.0", () => {
-  assert.equal(VERSION, "0.5.0");
+test("version follows package.json", () => {
+  assert.match(VERSION, /^\d+\.\d+\.\d+$/);
+  assert.equal(VERSION, JSON.parse(fs.readFileSync(new URL("../package.json", import.meta.url), "utf8")).version);
 });
 
 test("build returns ir, model, svg, and a review", () => {

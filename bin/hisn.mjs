@@ -7,12 +7,12 @@ import { fileURLToPath } from "node:url";
 import { dirname, join, extname, resolve, basename } from "node:path";
 import { createServer } from "node:http";
 
-import { build, buildDiff, validate, templates, templateNames, templateLabels, matrixMarkdown, matrixCSV, catalogs, catalogNames, readCatalog } from "../docs/app/engine.mjs";
+import { build, buildDiff, validate, templates, templateNames, templateLabels, matrixMarkdown, matrixCSV, matrix, catalogs, catalogNames, readCatalog } from "../docs/app/engine.mjs";
 import { toHTML, toCard } from "./html.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, "..");
-const VERSION = "0.6.0";
+const VERSION = "0.7.0";
 
 function usage() {
   process.stdout.write(
@@ -24,6 +24,7 @@ Usage:
   hisn template <name> [-o file.hisn]                       print a reference blueprint
   hisn check <source> [--json] [--strict] [--catalog f.json] review a blueprint for gaps
   hisn matrix <source> [-o table.md] [--csv]                what each named control covers
+  hisn report <source> [-o review.md] [--lang ar] [--catalog f.json]  a review report a reviewer can sign
   hisn controls <framework> [--json]                        what a framework expects a design to show
   hisn diff <before> <after> [-o out.html] [--strict]       what changed, and whether it got weaker
   hisn card <source> [-o card.svg] [--theme dark|light]     a 1200 by 630 share image
@@ -239,6 +240,64 @@ function cmdControls(args) {
   return 0;
 }
 
+function cmdReport(args) {
+  const text = readSource(args[0]);
+  if (text === null) return 2;
+  let catalog = null;
+  const catPath = argValue(args, "--catalog");
+  if (catPath) {
+    if (!existsSync(catPath)) { console.error("hisn: no such catalog file: " + catPath); return 2; }
+    try { catalog = readCatalog(readFileSync(catPath, "utf8")); }
+    catch (e) { console.error("hisn: could not read the catalog: " + e.message); return 2; }
+  }
+  let built;
+  try { built = build(text, "dark", catalog ? { catalog } : undefined); }
+  catch (e) { console.error("hisn: could not read the source: " + e.message); return 2; }
+  const ar = argValue(args, "--lang") === "ar";
+  const T = ar ? { title: "تقرير مراجعة المخطط", source: "الملف", framework: "الإطار", date: "التاريخ", tool: "الأداة", summary: "الخلاصة", findings: "الملاحظات", none: "لا ملاحظات", sev: "الدرجة", finding: "الملاحظة", detail: "التفصيل", fix: "المعالجة", counts: "{h} عالية، {m} متوسطة، {l} منخفضة", named: "الضوابط مسمّاة على {p}% من العناصر، {cc} من {ct} مكوّنًا و{fc} من {ft} تدفقًا", sensitive: "التدفقات الحسّاسة التي لها ضابط مسمّى: {c} من {t}", coverage: "تغطية الإطار", area: "المجال", by: "بالضوابط", missing: "غير مغطى", yes: "نعم", no: "لا", zones: "المناطق", zone: "المنطقة", trust: "مستوى الثقة", comps: "المكوّنات", controls: "الضوابط المسمّاة وما تغطيه", control: "الضابط", flows: "التدفقات", meaning: "ماذا يعني هذا التقرير", meaningText: "تسمية ضابط على عنصر تسجّل أين ينتمي في التصميم، وليست دليلًا على أنه منفّذ. تغطية الإطار تقول إن المخطط سمّى ضابطًا لكل مجال يستطيع الرسم إظهاره، وهي فحص للتصميم لا شهادة، والتنفيذ شأن الاختبار والتقييم المستقل.", signoff: "الاعتماد", reviewer: "المراجع", decision: "القرار", accept: "مقبول", acceptCond: "مقبول بشروط", reject: "مرفوض", notes: "ملاحظات المراجع", zoneTrust: { untrusted: "غير موثوق", dmz: "منطقة منزوعة", restricted: "مقيّد", secure: "آمن", management: "إدارة" } }
+    : { title: "Blueprint review report", source: "Source", framework: "Framework", date: "Date", tool: "Tool", summary: "Summary", findings: "Findings", none: "Nothing to flag", sev: "Severity", finding: "Finding", detail: "Detail", fix: "Fix", counts: "{h} high, {m} medium, {l} low", named: "controls named on {p}% of elements, {cc} of {ct} components and {fc} of {ft} flows", sensitive: "sensitive flows with a named control: {c} of {t}", coverage: "Framework coverage", area: "Area", by: "By controls", missing: "not addressed", yes: "yes", no: "no", zones: "Zones", zone: "Zone", trust: "Trust", comps: "Components", controls: "Named controls and what they cover", control: "Control", flows: "Flows", meaning: "What this report means", meaningText: "Naming a control on an element records where it belongs in the design. It is not evidence that the control is implemented. Framework coverage says the blueprint names a control for every area a drawing can show. It is a design check, not a certification, and implementation is a matter for testing and independent assessment.", signoff: "Sign off", reviewer: "Reviewer", decision: "Decision", accept: "accepted", acceptCond: "accepted with conditions", reject: "rejected", notes: "Reviewer notes", zoneTrust: {} };
+  const { ir, findings, counts, coverage } = built;
+  const esc = (v) => String(v == null ? "" : v).replace(/\|/g, "\\|");
+  const out = [];
+  out.push("# " + T.title + ": " + (ir.title || basename(args[0])), "");
+  out.push("| | |", "| --- | --- |", "| " + T.source + " | " + esc(basename(args[0])) + " |", "| " + T.framework + " | " + esc(ir.framework || "") + " |", "| " + T.date + " | " + new Date().toISOString().slice(0, 10) + " |", "| " + T.tool + " | Hisn " + VERSION + " |", "");
+  out.push("## " + T.summary, "");
+  out.push("- " + T.counts.replace("{h}", counts.high).replace("{m}", counts.medium).replace("{l}", counts.low));
+  out.push("- " + T.named.replace("{p}", coverage.named).replace("{cc}", coverage.components.controlled).replace("{ct}", coverage.components.total).replace("{fc}", coverage.flows.controlled).replace("{ft}", coverage.flows.total));
+  out.push("- " + T.sensitive.replace("{c}", coverage.sensitiveFlows.controlled).replace("{t}", coverage.sensitiveFlows.total));
+  if (coverage.framework) out.push("- " + T.coverage + ": " + coverage.framework.percent + "% (" + coverage.framework.addressed.length + " / " + coverage.framework.expected + ")");
+  out.push("", "## " + T.findings, "");
+  if (!findings.length) out.push(T.none, "");
+  else {
+    out.push("| " + T.sev + " | " + T.finding + " | " + T.detail + " | " + T.fix + " |", "| --- | --- | --- | --- |");
+    for (const f of findings) out.push("| " + f.severity + " | " + esc(f.title) + " | " + esc(f.detail) + " | " + esc(f.fix) + " |");
+    out.push("");
+  }
+  if (coverage.framework) {
+    const fc = coverage.framework;
+    out.push("## " + T.coverage + ": " + fc.label, "", "| " + T.area + " | | " + T.by + " |", "| --- | --- | --- |");
+    for (const a of fc.addressed) out.push("| " + esc(a.id) + " " + esc(a.title) + " | " + T.yes + " | " + esc(a.by.join(", ")) + " |");
+    for (const m of fc.missing) out.push("| " + esc(m.id) + " " + esc(m.title) + " | " + T.no + " | " + T.missing + " |");
+    out.push("");
+  }
+  out.push("## " + T.zones, "", "| " + T.zone + " | " + T.trust + " | " + T.comps + " |", "| --- | --- | --- |");
+  for (const z of ir.zones) out.push("| " + esc(z.label || z.id) + " | " + esc(T.zoneTrust[z.trust] || z.trust) + " | " + ir.components.filter((c) => c.zone === z.id).map((c) => c.label || c.id).join(", ") + " |");
+  out.push("");
+  const rows = matrix(ir);
+  if (rows.length) {
+    out.push("## " + T.controls, "", "| " + T.control + " | " + T.comps + " | " + T.flows + " |", "| --- | --- | --- |");
+    for (const r of rows) out.push("| " + esc(r.control) + " | " + r.components.map((c) => esc(c.label)).join(", ") + " | " + r.flows.map((f) => esc(f.from) + " \u2192 " + esc(f.to)).join(", ") + " |");
+    out.push("");
+  }
+  out.push("## " + T.meaning, "", T.meaningText, "");
+  out.push("## " + T.signoff, "", "| " + T.reviewer + " | " + T.date + " | " + T.decision + " |", "| --- | --- | --- |", "| | | " + T.accept + " / " + T.acceptCond + " / " + T.reject + " |", "", T.notes + ":", "", "", "");
+  const md = out.join("\n");
+  const outPath = argValue(args, "-o");
+  if (outPath) { writeFileSync(outPath, md); console.log("wrote " + outPath + "  (" + findings.length + " findings, " + (coverage.framework ? coverage.framework.percent + "% coverage" : "no framework") + ")"); }
+  else process.stdout.write(md);
+  return 0;
+}
+
 function cmdMatrix(args) {
   const text = readSource(args[0]);
   if (text === null) return 2;
@@ -293,6 +352,7 @@ function main() {
   if (cmd === "card") return cmdCard(args);
   if (cmd === "check") return cmdCheck(args);
   if (cmd === "matrix") return cmdMatrix(args);
+  if (cmd === "report") return cmdReport(args);
   if (cmd === "controls") return cmdControls(args);
   if (cmd === "diff") return cmdDiff(args);
   if (cmd === "serve") return cmdServe(args);

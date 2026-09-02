@@ -16,7 +16,7 @@ import { palette } from "./theme.mjs";
 import { check } from "./checks.mjs";
 import { diffBlueprints } from "./diff.mjs";
 
-export const VERSION = "0.6.0";
+export const VERSION = "0.7.0";
 
 // Compare two revisions and draw the difference.
 export function buildDiff(beforeSource, afterSource, theme) {

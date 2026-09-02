@@ -120,6 +120,8 @@ doubles as a worked example of both.
 ## Control coverage
 
 `hisn matrix` turns the blueprint into a table of what each named control covers,
+
+`hisn report blueprint.hisn -o review.md` writes a review report a person can sign: the summary, every finding with its fix, framework coverage area by area, the zones and their components, the named controls and what they cover, a plain note on what coverage does and does not mean, and a sign off block. `--lang ar` writes it in Arabic.
 as markdown or CSV:
 
 ```

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.0
+
+- `hisn report`: a markdown review report a reviewer can sign, with the summary, findings and fixes, framework coverage by area, zones, the control matrix, a note on what coverage means, and a sign off block, in English or Arabic with `--lang ar`.
+
 ## 0.6.0
 
 - `direction RL` for blueprints that read right to left: bands, components, flows, and labels mirror across the width, the least trusted zone on the right and the most trusted on the left. The review is unchanged. Tested.

@@ -58,3 +58,17 @@ test("canvas has positive size", () => {
   const m = layout(parse(src));
   assert.ok(m.width > 0 && m.height > 0);
 });
+
+test("RL direction mirrors bands, components, and flows across the width", () => {
+  const src = 'title t\nzone pub "Public" trust=untrusted\nzone core "Core" trust=restricted\ncomponent a "A" zone=pub\ncomponent b "B" zone=core\nflow a -> b "x" controls=SR1';
+  const lr = layout(parse(src));
+  const rl = layout(parse("direction RL\n" + src));
+  assert.equal(rl.direction, "RL");
+  assert.equal(rl.width, lr.width);
+  const bandLr = lr.bands.find((b) => b.id === "pub"), bandRl = rl.bands.find((b) => b.id === "pub");
+  assert.ok(Math.abs(bandRl.x - (lr.width - bandLr.x - bandLr.w)) < 0.01, "band mirrored");
+  assert.ok(bandRl.x > rl.bands.find((b) => b.id === "core").x, "least trusted zone sits on the right");
+  const cLr = lr.components.find((c) => c.id === "a"), cRl = rl.components.find((c) => c.id === "a");
+  assert.ok(Math.abs(cRl.x - (lr.width - cLr.x - cLr.w)) < 0.01 && cRl.y === cLr.y, "component mirrored");
+  assert.ok(Math.abs(rl.flows[0].mx - (lr.width - lr.flows[0].mx)) < 0.01, "flow label mirrored");
+});

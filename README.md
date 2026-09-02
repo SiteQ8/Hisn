@@ -38,6 +38,10 @@ npx github:SiteQ8/Hisn render cde.hisn -o cde.html
 Each one is written to pass its own review and to address its whole control
 catalog, so it doubles as a worked example of a clean design.
 
+## Right to left
+
+Add `direction RL` to a blueprint that reads right to left, which suits Arabic, Hebrew, and Persian labels: the least trusted zone sits on the right and the most trusted on the left, flows and labels mirror with it, and the review is unchanged.
+
 ## It reviews the blueprint, not just draws it
 
 A blueprint states an intended architecture, so the intent can be checked. Run

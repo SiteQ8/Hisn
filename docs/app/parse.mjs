@@ -85,6 +85,7 @@ export function parse(text) {
   const ir = {
     title: "",
     framework: "",
+    direction: "LR",
     zones: [],
     components: [],
     flows: [],
@@ -101,6 +102,8 @@ export function parse(text) {
 
     if (head === "title") {
       ir.title = line.slice(line.toLowerCase().indexOf("title") + 5).trim().replace(/^"|"$/g, "");
+    } else if (head === "direction" || head === "dir") {
+      ir.direction = (tokens[1] ? tokens[1].v : "LR").toUpperCase() === "RL" ? "RL" : "LR";
     } else if (head === "framework") {
       ir.framework = (tokens[1] ? tokens[1].v : "").toLowerCase();
     } else if (head === "zone") {

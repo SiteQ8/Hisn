@@ -48,7 +48,8 @@ export function renderSVG(model, P, options) {
 
   // title
   if (model.title) {
-    parts.push(`<text class="hn-title" x="28" y="30" fill="${P.text}" font-size="18" font-weight="650">${esc(model.title)}</text>`);
+    const rtl = model.direction === "RL";
+    parts.push(`<text class="hn-title" x="${rtl ? model.width - 28 : 28}" y="30"${rtl ? ' text-anchor="end"' : ""} fill="${P.text}" font-size="18" font-weight="650">${esc(model.title)}</text>`);
   }
 
   // trust bands (behind components)
@@ -62,9 +63,9 @@ export function renderSVG(model, P, options) {
       `<rect class="hn-band-box" x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="12" fill="${hexA(col, 0.06)}" stroke="${hexA(col, 0.5)}" stroke-width="1.3"/>` +
       `<rect class="hn-band-head" x="${b.x}" y="${b.y}" width="${b.w}" height="28" rx="12" fill="${hexA(col, 0.14)}"/>` +
       `<rect x="${b.x}" y="${b.y + 14}" width="${b.w}" height="14" fill="${hexA(col, 0.14)}"/>` +
-      `<circle cx="${b.x + 14}" cy="${b.y + 14}" r="4" fill="${col}"/>` +
-      `<text class="hn-band-label" x="${b.x + 24}" y="${b.y + 18}" fill="${P.text}" font-size="12" font-weight="600">${esc(truncate(b.label, b.w - badgeW - 30))}</text>` +
-      `<text class="hn-band-trust" x="${b.x + b.w - 10}" y="${b.y + 18}" text-anchor="end" fill="${col}" font-size="10" font-weight="600" letter-spacing="0.5">${esc(badge)}</text>` +
+      `<circle cx="${model.direction === "RL" ? b.x + b.w - 14 : b.x + 14}" cy="${b.y + 14}" r="4" fill="${col}"/>` +
+      `<text class="hn-band-label" x="${model.direction === "RL" ? b.x + b.w - 24 : b.x + 24}" y="${b.y + 18}"${model.direction === "RL" ? ' text-anchor="end"' : ""} fill="${P.text}" font-size="12" font-weight="600">${esc(truncate(b.label, b.w - badgeW - 30))}</text>` +
+      `<text class="hn-band-trust" x="${model.direction === "RL" ? b.x + 10 : b.x + b.w - 10}" y="${b.y + 18}" text-anchor="${model.direction === "RL" ? "start" : "end"}" fill="${col}" font-size="10" font-weight="600" letter-spacing="0.5">${esc(badge)}</text>` +
       `</g>`
     );
   }
@@ -95,12 +96,12 @@ export function renderSVG(model, P, options) {
     parts.push(
       `<g class="hn-comp" data-comp="${esc(c.id)}" data-type="${esc(c.type)}"${c.status ? ` data-status="${c.status}"` : ""}${diff && cst === "removed" ? ' opacity="0.6"' : ""}>` +
       `<rect class="hn-comp-box" x="${c.x}" y="${c.y}" width="${c.w}" height="${c.h}" rx="9" fill="${P.compFill}" stroke="${col}" stroke-width="${diff && cst !== "same" ? 2.2 : 1.4}"${diff && cst === "removed" ? ' stroke-dasharray="6 4"' : ""}/>` +
-      glyph(c.type, c.x + 12, c.y + (c.h - 22) / 2, 22, glyphColor) +
-      `<text class="hn-comp-label" x="${c.x + 44}" y="${c.controls.length ? c.y + 24 : c.cy + 4}" fill="${P.compText}" font-size="13" font-weight="500">${esc(truncate(c.label, c.w - 52))}</text>` +
+      glyph(c.type, model.direction === "RL" ? c.x + c.w - 34 : c.x + 12, c.y + (c.h - 22) / 2, 22, glyphColor) +
+      `<text class="hn-comp-label" x="${model.direction === "RL" ? c.x + c.w - 44 : c.x + 44}" y="${c.controls.length ? c.y + 24 : c.cy + 4}"${model.direction === "RL" ? ' text-anchor="end"' : ""} fill="${P.compText}" font-size="13" font-weight="500">${esc(truncate(c.label, c.w - 52))}</text>` +
       (c.controls.length
-        ? `<text class="hn-comp-controls" x="${c.x + 44}" y="${c.y + 44}" fill="${P.dim}" font-size="10.5">${esc(truncate(c.controls.join(", "), c.w - 52, 5.4))}</text>`
+        ? `<text class="hn-comp-controls" x="${model.direction === "RL" ? c.x + c.w - 44 : c.x + 44}" y="${c.y + 44}"${model.direction === "RL" ? ' text-anchor="end"' : ""} fill="${P.dim}" font-size="10.5">${esc(truncate(c.controls.join(", "), c.w - 52, 5.4))}</text>`
         : "") +
-      `<text class="hn-comp-type" x="${c.x + c.w - 8}" y="${c.y + 15}" text-anchor="end" fill="${P.dim}" font-size="9" letter-spacing="0.4">${esc(c.type.toUpperCase())}</text>` +
+      `<text class="hn-comp-type" x="${model.direction === "RL" ? c.x + 8 : c.x + c.w - 8}" y="${c.y + 15}" text-anchor="${model.direction === "RL" ? "start" : "end"}" fill="${P.dim}" font-size="9" letter-spacing="0.4">${esc(c.type.toUpperCase())}</text>` +
       `</g>`
     );
   }

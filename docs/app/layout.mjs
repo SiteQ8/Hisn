@@ -105,6 +105,14 @@ export function layout(ir) {
       return { ...f, d, mx, my, id: "f" + i, boundary };
     });
 
+  // right to left: mirror the finished layout across the width, so the least trusted
+  // zone sits on the right and the most trusted on the left, the way Arabic reads
+  if (ir.direction === "RL") {
+    for (const b of bands) b.x = width - b.x - b.w;
+    for (const c of comps) { c.x = width - c.x - c.w; c.cx = c.x + c.w / 2; }
+    for (const f of flows) { f.d = mirrorPath(f.d, width); f.mx = width - f.mx; }
+  }
+
   // adjacency for the viewer: component -> incident flow ids
   const incident = {};
   comps.forEach((c) => (incident[c.id] = []));
@@ -118,6 +126,7 @@ export function layout(ir) {
   return {
     title: ir.title,
     framework: ir.framework,
+    direction: ir.direction || "LR",
     width,
     height,
     bands,
@@ -128,4 +137,15 @@ export function layout(ir) {
     trustsUsed,
     dataUsed,
   };
+}
+
+// mirror every x coordinate of an SVG path across the drawing width
+export function mirrorPath(d, W) {
+  let i = 0;
+  return d.replace(/-?\d+(?:\.\d+)?/g, (m) => {
+    const v = parseFloat(m);
+    const out = i % 2 === 0 ? W - v : v;
+    i++;
+    return String(Math.round(out * 100) / 100);
+  });
 }

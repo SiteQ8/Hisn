@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.0
+
+- `direction RL` for blueprints that read right to left: bands, components, flows, and labels mirror across the width, the least trusted zone on the right and the most trusted on the left. The review is unchanged. Tested.
+
 ## 0.5.0
 
 - Three more frameworks: NCA essential cybersecurity controls, NIS2, and the CIS
